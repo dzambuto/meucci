@@ -23,6 +23,23 @@ proto.route.prototype.respond = function() {
 };
 
 // OK
+proto.route.prototype.request = function() {	
+	var args = Array.prototype.slice.apply(arguments)
+		, promises = []
+		, path = this.path
+		, sockets = this.sockets || this.parent.socket;
+	
+	if(!sockets) return this;
+	if(!sockets.length) return remoteCall(path, args, sockets);
+	
+	for(var i = 0; i < sockets.length; i++) {
+		promises.push(remoteCall(path, args, sockets[i]));
+	}
+
+	return Q.all(promises);
+};
+
+// OK
 proto.route.prototype.middleware = function(fn) {
 	var self = this;
 	var arity = fn.length;

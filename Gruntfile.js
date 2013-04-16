@@ -1,5 +1,6 @@
 module.exports = function(grunt) {
 	grunt.initConfig({
+		allFiles: ['src/**/*.js'],
 		pkg: grunt.file.readJSON('package.json'),
 		concat: {
 			options: {
@@ -25,12 +26,17 @@ module.exports = function(grunt) {
 		mochaTest: {
 			node: ['test/base.js'],
 			client: ['test/server-test.js']
+		},
+		watch: {
+			files: ['<%= allFiles %>'],
+			tasks: ['concat', 'mochaTest', 'uglify']
 		}
 	});
 	
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-mocha-test');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-contrib-watch');
 	
 	grunt.registerTask('default', ['concat', 'mochaTest', 'uglify']);
 	grunt.registerTask('test', ['mochaTest']);

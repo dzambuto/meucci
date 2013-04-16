@@ -41,3 +41,23 @@ function remoteCall(path, args, socket) {
 
 	return deferred.promise;
 }
+
+function removeCallbacks(path, list, callbacks) {
+	var all = true;
+	
+	for(var i = 0; i < list.length; ++i) {
+		var offset = 0, l = callbacks.length;
+		for(var j = 0; j < l; ++j) {
+			var jo = j - offset;
+			var fn = callbacks[jo];
+			if(fn.match(path, list[i])) {
+				callbacks.splice(jo, 1);
+				offset++;
+			} else if(fn.path(path)) {
+				all = false;
+			}
+		}
+	}
+	
+	return all;
+}

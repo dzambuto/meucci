@@ -121,6 +121,23 @@ proto.route.prototype.respond = function() {
 };
 
 // OK
+proto.route.prototype.request = function() {	
+	var args = Array.prototype.slice.apply(arguments)
+		, promises = []
+		, path = this.path
+		, sockets = this.sockets || this.parent.socket;
+	
+	if(!sockets) return this;
+	if(!sockets.length) return remoteCall(path, args, sockets);
+	
+	for(var i = 0; i < sockets.length; i++) {
+		promises.push(remoteCall(path, args, sockets[i]));
+	}
+
+	return Q.all(promises);
+};
+
+// OK
 proto.route.prototype.middleware = function(fn) {
 	var self = this;
 	var arity = fn.length;
@@ -208,48 +225,15 @@ proto.route.prototype.subscribe = function() {
 
 proto.route.prototype.unsubscribe = function() {
 	var path = this.path, callbacks = this.parent.callbacks;
-	
-	for(var i = 0; i < arguments.length; ++i) {		
-		var offset = 0, l = callbacks.length;
-		for(var j = 0; j < l; ++j) {
-			var jo = j - offset;
-			var fn = callbacks[jo];
-			if(fn.match(path, arguments[i])) {
-				callbacks.splice(jo, 1);
-				offset++;
-			}
-		}
-	}
-
+	removeCallbacks(path, arguments, callbacks)
 	return this;
 };
 
 proto.route.prototype.publish = function() {
 	var args = Array.prototype.slice.apply(arguments);
 	this.parent.handle(this.path, args);
-	// TODO - Client (emette evento event)
 	this.parent.broadcast(this.path, args, this.sockets);
 	return this;
-};
-
-proto.route.prototype.request = function() {
-	if(!this.sockets) return this;
-
-	var args = Array.prototype.slice.apply(arguments);
-	var promises = [];
-	
-	for(var i = 0; i < this.sockets.length; i++) {
-		var deferred = Q.defer();
-	
-		this.sockets[i].emit('event', { 'path': this.path, 'args': args, 'rpc': true }, function(message) {
-			if(message.res) deferred.resolve(message.res);
-			else deferred.reject(new Error(message.err));
-		});
-	
-		promises.push(deferred.promise);
-	}
-
-	return Q.all(promises);
 };
 
 proto.listen = function(host, options) {
@@ -314,17 +298,15 @@ proto.init = function(socket) {
 	socket.on('disconnect', onDisconnect);
 
 	// TODO - Client (eliminare)
-	function onSubscribe(path, done) {
+	function onSubscribe(path) {
 		socket.join(path.path);
-		done(true);
 	}
 
 	socket.on('subscribe', onSubscribe);
 
 	// TODO - Client (eliminare)
-	function onUnsubscribe(path, done) {
+	function onUnsubscribe(path) {
 		socket.leave(path.path);
-		done(true);
 	}
 
 	socket.on('unsubscribe', onUnsubscribe);
@@ -389,4 +371,24 @@ function remoteCall(path, args, socket) {
 	});
 
 	return deferred.promise;
+}
+
+function removeCallbacks(path, list, callbacks) {
+	var all = true;
+	
+	for(var i = 0; i < list.length; ++i) {
+		var offset = 0, l = callbacks.length;
+		for(var j = 0; j < l; ++j) {
+			var jo = j - offset;
+			var fn = callbacks[jo];
+			if(fn.match(path, list[i])) {
+				callbacks.splice(jo, 1);
+				offset++;
+			} else if(fn.path(path)) {
+				all = false;
+			}
+		}
+	}
+	
+	return all;
 }
