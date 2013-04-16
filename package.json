@@ -3,6 +3,8 @@
   "description": "PubSub from Timecolors",
   "version": "0.1.1",
   "author": "Daniele Zambuto <daniele.zambuto@gmail.com>",
+  "repository": "git://github.com/dzambuto/protocol.git",
+  "main": "build/protocol.js",
   "dependencies": {
     "q": "~0.9.2",
     "socket.io": "~0.9.x"
@@ -16,5 +18,9 @@
     "grunt-mocha": "~0.3.1",
     "grunt-mocha-test": "~0.2.2",
     "grunt-contrib-uglify": "~0.2.0"
+  },
+  "keywords": ["pubsub", "publish/subscribe"],
+  "engines": {
+	  "node": "*"
   }
 }
