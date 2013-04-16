@@ -1,0 +1,14 @@
+{
+  "name": "protocol",
+  "repo": "dzambuto/protocol",
+  "version": "0.1.1",
+  "description": "PubSub from Timecolors",
+  "dependencies": {
+	  "learnboost/socket.io": "~0.9.x",
+	  "kriskowal/q": "*"
+  },
+  "keywords": ["pubsub"],
+  "scripts": ["build/protocol-client.js"],
+  "main": "build/protocol-client.js",
+  "license": "MIT"
+}
