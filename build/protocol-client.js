@@ -128,18 +128,12 @@ proto.route.prototype.respond = function() {
 // OK
 proto.route.prototype.request = function() {	
 	var args = Array.prototype.slice.apply(arguments)
-		, promises = []
 		, path = this.path
 		, sockets = this.sockets || this.parent.socket;
 	
 	if(!sockets) return this;
-	if(!sockets.length) return remoteCall(path, args, sockets);
 	
-	for(var i = 0; i < sockets.length; i++) {
-		promises.push(remoteCall(path, args, sockets[i]));
-	}
-
-	return Q.all(promises);
+	return emitWithPromise('event', {'path': path, 'args': args, 'rpc': true}, sockets);
 };
 
 // OK
@@ -221,7 +215,6 @@ proto.route.prototype.match = function(path, params) {
 	return true;
 };
 
-// watch
 proto.route.prototype.subscribe = function() {
 	var path = this.path
 		, sockets = this.sockets || this.parent.socket
@@ -232,7 +225,7 @@ proto.route.prototype.subscribe = function() {
 	}
 	
 	if(!this.keys.length) {
-		this.parent.emit('subscribe', path, sockets);
+		emit('subscribe', {'path': path}, sockets);
 	}
 	
 	return this;
@@ -244,7 +237,7 @@ proto.route.prototype.unsubscribe = function() {
 		, callbacks = this.parent.callbacks;
 		
 	if(removeCallbacks(path, arguments, callbacks)) {
-		this.parent.emit('unsubscribe', path, sockets);
+		emit('unsubscribe', {'path': path}, sockets);
 	}
 
 	return this;
@@ -252,10 +245,12 @@ proto.route.prototype.unsubscribe = function() {
 
 // OK
 proto.route.prototype.publish = function() {
-	var args = Array.prototype.slice.apply(arguments);
+	var args = Array.prototype.slice.apply(arguments)
+		, path = this.path
+		, sockets = this.sockets || this.parent.socket;
 	this.parent.handle(this.path, args);
-	this.parent.emit('event', this.path, this.sockets || this.parent.socket, args);
-	return this;
+	if(!sockets) return this;
+	return emitWithPromise('event', {'path': path, 'args': args}, sockets);
 };
 
 proto.connect = function(host, options) {
@@ -317,21 +312,6 @@ proto.init = function(socket) {
 	socket.on('disconnect', onDisconnect);
 };
 
-proto.emit = function(action, path, sockets, args) {
-	var message = {'path': path}
-		, callback = function(res) {};
-	
-	if(args) message.args = args;
-
-	if(sockets && sockets.length) {
-		for(var i = 0; i < sockets.length; i++) {
-			sockets[i].emit(action, message, callback);
-		}
-	} else if(sockets) {
-		sockets.emit(action, message, callback);
-	}
-};
-
 proto.initStorage = function(options) {
 	
 };
@@ -369,15 +349,36 @@ function merge(a, b){
     return a;
 }
 
-function remoteCall(path, args, socket) {
+function remoteCall(action, message, socket) {
 	var deferred = Q.defer();
 
-	socket.emit('event', { 'path': path, 'args': args, 'rpc': true }, function(message) {
-		if(message.res) deferred.resolve(message.res);
-		else deferred.reject(new Error(message.err));
+	socket.emit(action, message, function(res) {
+		if(res.res) deferred.resolve(res.res);
+		else deferred.reject(new Error(res.err));
 	});
 
 	return deferred.promise;
+}
+
+function emitWithPromise(action, message, sockets) {
+	var promises = [];
+	
+	if(!sockets.length) return remoteCall(action, message, sockets);
+	
+	for(var i = 0; i < sockets.length; i++) {
+		promises.push(remoteCall(action, message, sockets[i]));
+	}
+
+	return Q.all(promises);
+}
+
+function emit(action, message, sockets) {
+	if(!sockets.length) sockets.emit(action, message);
+	else {
+		for(var i = 0; i < sockets.length; i++) {
+			sockets[i].emit(action, message);
+		}
+	}
 }
 
 function removeCallbacks(path, list, callbacks) {

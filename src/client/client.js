@@ -8,7 +8,7 @@ proto.route.prototype.subscribe = function() {
 	}
 	
 	if(!this.keys.length) {
-		this.parent.emit('subscribe', path, sockets);
+		emit('subscribe', {'path': path}, sockets);
 	}
 	
 	return this;
@@ -20,7 +20,7 @@ proto.route.prototype.unsubscribe = function() {
 		, callbacks = this.parent.callbacks;
 		
 	if(removeCallbacks(path, arguments, callbacks)) {
-		this.parent.emit('unsubscribe', path, sockets);
+		emit('unsubscribe', {'path': path}, sockets);
 	}
 
 	return this;
@@ -28,10 +28,12 @@ proto.route.prototype.unsubscribe = function() {
 
 // OK
 proto.route.prototype.publish = function() {
-	var args = Array.prototype.slice.apply(arguments);
+	var args = Array.prototype.slice.apply(arguments)
+		, path = this.path
+		, sockets = this.sockets || this.parent.socket;
 	this.parent.handle(this.path, args);
-	this.parent.emit('event', this.path, this.sockets || this.parent.socket, args);
-	return this;
+	if(!sockets) return this;
+	return emitWithPromise('event', {'path': path, 'args': args}, sockets);
 };
 
 proto.connect = function(host, options) {
@@ -91,21 +93,6 @@ proto.init = function(socket) {
 	}
 
 	socket.on('disconnect', onDisconnect);
-};
-
-proto.emit = function(action, path, sockets, args) {
-	var message = {'path': path}
-		, callback = function(res) {};
-	
-	if(args) message.args = args;
-
-	if(sockets && sockets.length) {
-		for(var i = 0; i < sockets.length; i++) {
-			sockets[i].emit(action, message, callback);
-		}
-	} else if(sockets) {
-		sockets.emit(action, message, callback);
-	}
 };
 
 proto.initStorage = function(options) {

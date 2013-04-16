@@ -31,15 +31,36 @@ function merge(a, b){
     return a;
 }
 
-function remoteCall(path, args, socket) {
+function remoteCall(action, message, socket) {
 	var deferred = Q.defer();
 
-	socket.emit('event', { 'path': path, 'args': args, 'rpc': true }, function(message) {
-		if(message.res) deferred.resolve(message.res);
-		else deferred.reject(new Error(message.err));
+	socket.emit(action, message, function(res) {
+		if(res.res) deferred.resolve(res.res);
+		else deferred.reject(new Error(res.err));
 	});
 
 	return deferred.promise;
+}
+
+function emitWithPromise(action, message, sockets) {
+	var promises = [];
+	
+	if(!sockets.length) return remoteCall(action, message, sockets);
+	
+	for(var i = 0; i < sockets.length; i++) {
+		promises.push(remoteCall(action, message, sockets[i]));
+	}
+
+	return Q.all(promises);
+}
+
+function emit(action, message, sockets) {
+	if(!sockets.length) sockets.emit(action, message);
+	else {
+		for(var i = 0; i < sockets.length; i++) {
+			sockets[i].emit(action, message);
+		}
+	}
 }
 
 function removeCallbacks(path, list, callbacks) {
