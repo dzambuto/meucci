@@ -4,11 +4,20 @@
   "version": "0.1.1",
   "description": "PubSub from Timecolors",
   "dependencies": {
-	  "learnboost/socket.io": "~0.9.x",
-	  "kriskowal/q": "*"
+    "learnboost/socket.io": "~0.9.x",
+    "kriskowal/q": "*"
   },
-  "keywords": ["pubsub"],
-  "scripts": ["build/protocol-client.js"],
+  "keywords": [
+    "pubsub"
+  ],
+  "scripts": [
+    "build/protocol-client.js"
+  ],
   "main": "build/protocol-client.js",
-  "license": "MIT"
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components"
+  ]
 }
