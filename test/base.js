@@ -3,14 +3,14 @@ var protocol = require('../build/protocol');
 
 describe('protocol', function() {
 	describe('protocol("topic")', function() {
-		it('should be an instance of protocol.route', function(){
+		it('is an instance of protocol.route', function(){
 			var server = protocol();
 			server('topic').should.be.an.instanceOf(server.route);
 		});
 	});
 	
 	describe('protocol("topic/:id/:method").match', function() {
-		it('should return an array of params', function() {
+		it('returns an array of parameters', function() {
 			var server = protocol()
 				, params = [];
 				
@@ -22,29 +22,26 @@ describe('protocol', function() {
 	describe('protocol("add/:a/:b").callback(fn)', function() {
 		var fn = function(a, b) { return a + b; };
 		
-		it('should have fn property equals to original function', function(done) {
+		it('has the fn property that equals to the original function', function() {
 			var server = protocol()
 				, res = server('add/:a/:b').callback(fn);
 				
 			res.should.have.property('match');
 			res.match.should.be.an.instanceOf(Function);
-			done();
 		});
 		
-		it('should perform when path matched', function(done){
+		it('performs when the path matches', function(){
 			var server = protocol()
 				, res = server('add/:a/:b').callback(fn);
 				
 			res('add/1/1', []).should.be.equal('11');
-			done();
 		});
 		
-		it('should not perform when path dont match', function(done){
+		it('does not perform when the path does not match', function(){
 			var server = protocol()
 				, res = server('add/:a/:b').callback(fn);
 				
-			(res('add/1/1/3', []) == undefined).should.true;
-			done();
+			should.not.exist(res('add/1/1/3', []));
 		});
 	});
 	
@@ -53,13 +50,13 @@ describe('protocol', function() {
 		var fn2 = function(a, b) { return a - b; };
 		var fn3 = [fn1, null];
 		
-		it('should accept plain functions', function(){
+		it('accepts plain functions', function(){
 			var server = protocol();
 			server('add/:a/:b').subscribe(fn1, fn2);
 			server.callbacks.should.have.length(2);
 		});
 		
-		it('should accept function/context pair', function(){
+		it('accepts function/context pair', function(){
 			var server = protocol();
 			server('add/:a/:b').subscribe(fn1, fn2);
 			server('add/:a/:b').subscribe(fn3);
@@ -81,12 +78,12 @@ describe('protocol', function() {
 			server('add/:a/:b').subscribe(fn3);
 		});
 		
-		it('should accept a single function', function(){
+		it('accepts a single function', function(){
 			server('add/:a/:b').unsubscribe(fn2);
 			server.callbacks.should.have.length(3);
 		});
 		
-		it('should accept multiple functions', function(){
+		it('accepts multiple functions', function(){
 			server('add/:a/:b').unsubscribe(fn1);
 			server.callbacks.should.have.length(1);
 		});
@@ -121,32 +118,32 @@ describe('protocol', function() {
 			server.reset();
 		});
 		
-		it('should perform only local subscribers 1', function(){
+		it('performs only with local subscribers 1', function(){
 			server('add/1').publish();
 			counter.should.be.equal(3);
 		});
 		
-		it('should perform only local subscribers 2', function(){
+		it('performs only with local subscribers 2', function(){
 			server('add/2').publish();
 			counter.should.be.equal(-2);
 		});
 		
-		it('should perform only local subscribers 3', function(){
+		it('performs only with local subscribers 3', function(){
 			server('add/3').publish();
 			counter.should.be.equal(9);
 		});
 		
-		it('should perform only local subscribers 4', function(){
+		it('performs only with local subscribers 4', function(){
 			server('mul/3').publish(4);
 			counter.should.be.equal(12);
 		});
 		
-		it('should perform only local subscribers 5', function(){
+		it('performs only with local subscribers 5', function(){
 			server('add/3/3').publish(4, 5);
 			counter.should.be.equal(15);
 		});
 		
-		it('should not perform anything', function(){
+		it('does not perform anything', function(){
 			server('add/2/3/create').publish();
 			counter.should.be.equal(0);
 		});
@@ -166,13 +163,13 @@ describe('protocol', function() {
 			counter = [];
 		});
 		
-		it('should add element in protocol.plugins', function(){
+		it('adds an element in protocol.plugins', function(){
 			server('topic1').use(md1, md2);
 			server('topic2').use(md3).subscribe(fn1);
 			server.plugins.should.have.length(3);
 		});
 		
-		it('should dispatch a request', function(){
+		it('dispatches a request', function(){
 			server.dispatch({path: 'topic1', args: [], params: []}, function(res) { 
 				res.should.have.property('res');
 				res.res.should.be.true;
@@ -181,7 +178,7 @@ describe('protocol', function() {
 			});
 		});
 		
-		it('should dispatch a request and trigger subscribers', function(){
+		it('dispatches a request and triggers to subscribers', function(){
 			server.dispatch({path: 'topic2', args: [], params: []}, function(res) { 
 				res.should.have.property('res');
 				res.res.should.be.true;
@@ -191,7 +188,7 @@ describe('protocol', function() {
 			});
 		});
 		
-		it('should dispatch a request and parameters', function(){
+		it('dispatches a request with parameters', function(){
 			var md4 = function(req, next) { 
 				req.params.should.have.property('id');
 				req.params.id.should.be.equal('4');
@@ -208,7 +205,7 @@ describe('protocol', function() {
 			});
 		});
 		
-		it('should dispatch a request and handle errors', function(){
+		it('dispatches a request and handle errors', function(){
 			var md5 = function(req, next) { 
 				counter.push('md5');
 				next('error');
@@ -242,7 +239,7 @@ describe('protocol', function() {
 			counter = 0;
 		});
 		
-		it('should be chainable', function(){
+		it('is chainable', function(){
 			server('add/1').subscribe(fn1).subscribe(fn2).publish().unsubscribe(fn2).publish();
 			counter.should.be.equal(1);
 		});

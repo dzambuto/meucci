@@ -13,36 +13,34 @@ describe('protocol', function() {
 		
 
 	before(function(done) {
-		server.listen(3000, {log:false});
-		
 		var md1 = function(req, next) { middleware.push('md1'); next(); };
 		server('task/:id').use(md1);
 		
 		server('task/create').respond(function(task, res) {
 			res(++task);
 		});
-		
-		setTimeout(function() {
+    
+    server.listen(3000, function () {
 			for(var i = 0; i < 2; ++i) {
 				clients.push(client());
 				clients[i].connect(socketURL, options);
 			}
-			done();
-		}, 50);
+      done();
+    });
 	});
 	
-	afterEach(function(done) {
+	afterEach(function() {
 		middleware = [];
-		clients[0].reset()('task/0').unsubscribe();
-		clients[1].reset()('task/1').unsubscribe();
-		setTimeout(function() {done()}, 30);
+		clients[0].reset()('task/0').unsubscribe()
+		clients[1].reset()('task/1').unsubscribe()
 	});
 	
 	
 	
 	it('should broadcast events (client)', function(done) {
 		clients[0]('task/0').subscribe(function(task) {
-			if(task == taskm) done();
+			task.should.equal(taskm);
+      done();
 		});
 		
 		setTimeout(function() { clients[1]('task/0').publish(taskm = 8); }, 30);
@@ -50,11 +48,13 @@ describe('protocol', function() {
 	
 	it('should broadcast events (server 1)', function(done) {
 		clients[0]('task/0').subscribe(function(task) {
-			if(task == taskm) done();
+			task.should.equal(taskm);
+      done();
 		});
 		
 		clients[1]('task/1').subscribe(function(task) {
-			if(task == taskm) done();
+			task.should.equal(taskm);
+      done();
 		});
 				
 		setTimeout(function() { server('task/0').publish(taskm = 8); }, 30);
