@@ -80,17 +80,15 @@ proto.init = function(socket) {
 	socket.on('disconnect', onDisconnect);
 
 	// TODO - Client (eliminare)
-	function onSubscribe(path, done) {
+	function onSubscribe(path) {
 		socket.join(path.path);
-		done({'res': true});
 	}
 
 	socket.on('subscribe', onSubscribe);
 
 	// TODO - Client (eliminare)
-	function onUnsubscribe(path, done) {
+	function onUnsubscribe(path) {
 		socket.leave(path.path);
-		done({'res': true});
 	}
 
 	socket.on('unsubscribe', onUnsubscribe);

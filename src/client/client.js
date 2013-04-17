@@ -8,7 +8,7 @@ proto.route.prototype.subscribe = function() {
 	}
 	
 	if(!this.pattern) {
-		emitWithPromise('subscribe', {'path': path}, sockets);
+		emit('subscribe', {'path': path}, sockets);
 	}
 	
 	return this;
@@ -20,7 +20,7 @@ proto.route.prototype.unsubscribe = function() {
 		, callbacks = this.parent.callbacks;
 		
 	if(removeCallbacks(path, arguments, callbacks)) {
-		emitWithPromise('unsubscribe', {'path': path}, sockets);
+		emit('unsubscribe', {'path': path}, sockets);
 	}
 
 	return this;
