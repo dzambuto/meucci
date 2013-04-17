@@ -7,7 +7,7 @@ proto.route.prototype.subscribe = function() {
 		callbacks.push(this.callback(arguments[i]));
 	}
 	
-	if(!this.keys.length) {
+	if(!this.pattern) {
 		emit('subscribe', {'path': path}, sockets);
 	}
 	
