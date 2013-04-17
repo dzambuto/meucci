@@ -3,6 +3,12 @@
   "description": "PubSub from Timecolors",
   "version": "0.1.1",
   "author": "Daniele Zambuto <daniele.zambuto@gmail.com>",
+  "contributors": [
+    {
+      "name": "Riccardo Gueli Alletti",
+      "email": "riccardo.gueli.alletti@gmail.com"
+    }
+  ],
   "repository": "git://github.com/dzambuto/protocol.git",
   "main": "build/protocol.js",
   "dependencies": {
