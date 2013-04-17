@@ -13,6 +13,7 @@
     "should": "*",
     "mocha": "*",
     "socket.io-client": "~0.9.x",
+    "matchdep": "~0.1.x",
     "grunt": "~0.4.1",
     "grunt-contrib-concat": "~0.2.0",
     "grunt-mocha": "~0.3.1",

@@ -1,4 +1,6 @@
 module.exports = function(grunt) {
+  require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
+  
 	grunt.initConfig({
 		allFiles: ['src/**/*.js'],
 		pkg: grunt.file.readJSON('package.json'),
@@ -27,17 +29,24 @@ module.exports = function(grunt) {
 			node: ['test/base.js'],
 			client: ['test/server-test.js']
 		},
+    mochaTestConfig: {
+      options: {
+        reporter: "spec"
+      }
+    },
 		watch: {
 			files: ['<%= allFiles %>'],
 			tasks: ['concat', 'mochaTest', 'uglify']
 		}
 	});
 	
-	grunt.loadNpmTasks('grunt-contrib-concat');
-	grunt.loadNpmTasks('grunt-mocha-test');
-	grunt.loadNpmTasks('grunt-contrib-uglify');
-	grunt.loadNpmTasks('grunt-contrib-watch');
-	
-	grunt.registerTask('default', ['concat', 'mochaTest', 'uglify']);
-	grunt.registerTask('test', ['mochaTest']);
+	grunt.registerTask('test', [
+    'mochaTest'
+  ]);
+  
+  grunt.registerTask('default', [
+    'concat',
+    'mochaTest',
+    'uglify'
+  ]);
 };
