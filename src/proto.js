@@ -1,4 +1,4 @@
-proto = {};
+var proto = {};
 
 // OK
 proto.handle = function(path, args) {

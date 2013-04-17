@@ -4,7 +4,7 @@ proto.route = function(path, sockets, parent, options) {
 	this.parent = parent;
 	if(sockets) this.sockets = sockets.length ? sockets : [sockets];
 	this.regexp = pathtoRegexp(path, this.keys = [], options.sensitive, options.strict);
-	this.pattern = this.keys || this.path.indexOf('*') ? true : false;
+	this.pattern = (this.keys.length || ~this.path.indexOf('*')) ? true : false;
 	return this;
 };
 

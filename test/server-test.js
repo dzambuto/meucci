@@ -1,21 +1,24 @@
 var should = require('should');
-
-var protocol = require('../build/protocol')();
+var protocol = require('../build/protocol');
 var client = require('../build/protocol-client');
 
-var socketURL = 'http://localhost:3000';
-var options = {'force new connection': true};
-
 describe('protocol', function() {
-	var clients = [], middleware = [], task = [0, 0], taskm = 0;;
+	var socketURL = 'http://localhost:3000'
+		, options = {'force new connection': true}
+		, clients = []
+		, middleware = []
+		, task = [0, 0]
+		, taskm = 0
+		, server = protocol();
+		
 
 	before(function(done) {
-		protocol.listen(3000, {log:false});
+		server.listen(3000, {log:false});
 		
 		var md1 = function(req, next) { middleware.push('md1'); next(); };
-		protocol('task/:id').use(md1);
+		server('task/:id').use(md1);
 		
-		protocol('task/create').respond(function(task, res) {
+		server('task/create').respond(function(task, res) {
 			res(++task);
 		});
 		
@@ -25,7 +28,7 @@ describe('protocol', function() {
 				clients[i].connect(socketURL, options);
 			}
 			done();
-		}, 30);
+		}, 50);
 	});
 	
 	afterEach(function(done) {
@@ -35,12 +38,7 @@ describe('protocol', function() {
 		setTimeout(function() {done()}, 30);
 	});
 	
-	it('should subscribe clients to events', function(done) {
-		clients[0]('task/0').subscribe();
-		clients[1]('task/1').subscribe();
-		
-		setTimeout(function() {done();}, 30);
-	});
+	
 	
 	it('should broadcast events (client)', function(done) {
 		clients[0]('task/0').subscribe(function(task) {
@@ -59,7 +57,7 @@ describe('protocol', function() {
 			if(task == taskm) done();
 		});
 				
-		setTimeout(function() { protocol('task/0').publish(taskm = 8); }, 30);
+		setTimeout(function() { server('task/0').publish(taskm = 8); }, 30);
 	});
 	
 	it('should broadcast events (server 2)', function(done) {
@@ -71,7 +69,7 @@ describe('protocol', function() {
 			if(task == taskm) clients[0]('task/create').request(task).then(function(task) { if(task == taskm+1) done(); else done(task); })
 		});
 				
-		setTimeout(function() { protocol('task/0').publish(taskm = 8); }, 30);
+		setTimeout(function() { server('task/0').publish(taskm = 8); }, 30);
 	});
 	
 	it('should unsubscribe callback (client 1)', function(done) {
@@ -83,7 +81,7 @@ describe('protocol', function() {
 		
 		clients[0]('task/0').unsubscribe(c1);		
 		
-		setTimeout(function() { protocol('task/0').publish(taskm = 8); }, 30);
+		setTimeout(function() { server('task/0').publish(taskm = 8); }, 30);
 	});
 	
 	it('should unsubscribe callback (client 2)', function(done) {
@@ -98,7 +96,7 @@ describe('protocol', function() {
 		clients[0]('task/0').unsubscribe(c1);
 		clients[0]('task/0').unsubscribe(c2);	
 		
-		setTimeout(function() { protocol('task/0').publish(taskm = 8); }, 30);
+		setTimeout(function() { server('task/0').publish(taskm = 8); }, 30);
 		setTimeout(function() { done(); }, 40);
 	});
 	
@@ -109,7 +107,7 @@ describe('protocol', function() {
 			clients[1]('task/stat').respond(function(stat, res) {
 				res(stat++);
 			});
-			protocol('task/stat', protocol.clients('i')).request(10).then(function(res) { done(); });
+			server('task/stat', server.clients('i')).request(10).then(function(res) { done(); });
 		}, 30);
 	});
 });

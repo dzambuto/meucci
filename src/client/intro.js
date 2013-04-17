@@ -1,6 +1,6 @@
 (function (root, factory) {
-    if (typeof exports === 'object') {
-        module.exports = factory(require('socket.io-client'), require('q'));
+    if (typeof module !== 'undefined' && module.exports) {
+        exports = module.exports = factory(require('socket.io-client'), require('q'));
     } else if (typeof define === 'function' && define.amd) {
         define('protocol', ['io', 'Q'], factory);
     } else {

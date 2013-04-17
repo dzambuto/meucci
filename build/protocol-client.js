@@ -1,6 +1,6 @@
 (function (root, factory) {
-    if (typeof exports === 'object') {
-        module.exports = factory(require('socket.io-client'), require('q'));
+    if (typeof module !== 'undefined' && module.exports) {
+        exports = module.exports = factory(require('socket.io-client'), require('q'));
     } else if (typeof define === 'function' && define.amd) {
         define('protocol', ['io', 'Q'], factory);
     } else {
@@ -25,7 +25,7 @@ function createProtocol() {
 	return protocol;
 }
 
-proto = {};
+var proto = {};
 
 // OK
 proto.handle = function(path, args) {
@@ -107,6 +107,7 @@ proto.route = function(path, sockets, parent, options) {
 	this.parent = parent;
 	if(sockets) this.sockets = sockets.length ? sockets : [sockets];
 	this.regexp = pathtoRegexp(path, this.keys = [], options.sensitive, options.strict);
+	this.pattern = (this.keys.length || ~this.path.indexOf('*')) ? true : false;
 	return this;
 };
 
@@ -224,7 +225,7 @@ proto.route.prototype.subscribe = function() {
 		callbacks.push(this.callback(arguments[i]));
 	}
 	
-	if(!this.keys.length) {
+	if(!this.pattern) {
 		emit('subscribe', {'path': path}, sockets);
 	}
 	

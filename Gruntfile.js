@@ -7,7 +7,7 @@ module.exports = function(grunt) {
 				separator: '\n\n'
 			},
 			node: {
-				src: ['src/server/intro.js', 'src/index.js', 'src/proto.js', 'src/route.js', 'src/server/server.js', 'src/utils.js'],
+				src: ['src/server/intro.js', 'src/index.js', 'src/proto.js', 'src/route.js', 'src/server/server.js', 'src/utils.js', 'src/server/outro.js'],
 		        dest: 'build/<%= pkg.name %>.js'
 			},
 			client: {
