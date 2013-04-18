@@ -8,10 +8,10 @@ proto.route.prototype.subscribe = function() {
 	}
 	
 	if(!this.pattern) {
-		emit('subscribe', {'path': path}, sockets);
+		emitWithPromise('subscribe', {'path': path}, sockets);
 	}
 	
-	return this;
+	return emitWithPromise('subscribe', {'path': path}, undefined);
 };
 
 proto.route.prototype.unsubscribe = function() {
@@ -20,7 +20,7 @@ proto.route.prototype.unsubscribe = function() {
 		, callbacks = this.parent.callbacks;
 		
 	if(removeCallbacks(path, arguments, callbacks)) {
-		emit('unsubscribe', {'path': path}, sockets);
+		return emit('unsubscribe', {'path': path}, sockets);
 	}
 
 	return this;
@@ -88,11 +88,24 @@ proto.init = function(socket) {
 	}
 
 	socket.on('event', onEvent);
-
+	
+	function onConnect() {
+		self.trigger('connected', socket);
+	}
+	
+	socket.on('connect', onConnect);
+	
 	function onDisconnect() {
+		self.trigger('disconnected', socket);
 	}
 
 	socket.on('disconnect', onDisconnect);
+	
+	function onConnectError(reason) {
+		self.trigger('connection:failed', reason, socket);
+	}
+	
+	socket.on('connect_failed', onConnectError);
 };
 
 proto.initStorage = function(options) {

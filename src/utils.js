@@ -43,10 +43,16 @@ function remoteCall(action, message, socket) {
 }
 
 function emitWithPromise(action, message, sockets) {
-	var promises = [];
+	
+	if(!sockets) {
+		var deferred = Q.defer();
+		deferred.resolve();
+		return deferred.promise;
+	}
 	
 	if(!sockets.length) return remoteCall(action, message, sockets);
 	
+	var promises = [];
 	for(var i = 0; i < sockets.length; i++) {
 		promises.push(remoteCall(action, message, sockets[i]));
 	}

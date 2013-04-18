@@ -226,22 +226,4 @@ describe('protocol', function() {
 		});
 		
 	});
-	
-	describe('protocol("topic").methods', function(){
-		var counter = 0;
-		var fn1 = function() { counter++; };
-		var fn2 = function() { counter-- };
-		var fn3 = function(a) { if(a == 1) counter++; else counter--; };
-		
-		var server = protocol();
-		
-		beforeEach(function(){
-			counter = 0;
-		});
-		
-		it('is chainable', function(){
-			server('add/1').subscribe(fn1).subscribe(fn2).publish().unsubscribe(fn2).publish();
-			counter.should.be.equal(1);
-		});
-	});
 });

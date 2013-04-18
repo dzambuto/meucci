@@ -22,9 +22,13 @@ proto.listen = function(host, options) {
 	var self = this; 
 	options = options || {};
 
-	this.io = io.listen(host, options);
+	this.io = io.listen(host, options, function() {
+		self.trigger('service:started');
+	});
+	
 	this.io.sockets.on('connection', function(socket) {
 		self.init(socket);
+		self.trigger('client:connected', socket);
 	});
 
 	return io;
@@ -66,7 +70,7 @@ proto.init = function(socket) {
 			req.rpc = message.rpc || false;
 		}
 		else {
-			return done({err: 'Invalid message.'});
+			return done({'err': 'Invalid message.'});
 		}
 
 		self.dispatch(req, done);
@@ -75,18 +79,18 @@ proto.init = function(socket) {
 	socket.on('event', onEvent);
 
 	function onDisconnect() {
+		self.trigger('client:disconnected', socket);
 	}
 
 	socket.on('disconnect', onDisconnect);
 
-	// TODO - Client (eliminare)
-	function onSubscribe(path) {
+	function onSubscribe(path, done) {
 		socket.join(path.path);
+		done({'res': true});
 	}
 
 	socket.on('subscribe', onSubscribe);
 
-	// TODO - Client (eliminare)
 	function onUnsubscribe(path) {
 		socket.leave(path.path);
 	}
