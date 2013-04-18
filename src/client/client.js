@@ -90,13 +90,13 @@ proto.init = function(socket) {
 	socket.on('event', onEvent);
 	
 	function onConnect() {
-		self.trigger('connected', socket);
+		self.trigger('connection:up', socket);
 	}
 	
 	socket.on('connect', onConnect);
 	
 	function onDisconnect() {
-		self.trigger('disconnected', socket);
+		self.trigger('connection:down', socket);
 	}
 
 	socket.on('disconnect', onDisconnect);

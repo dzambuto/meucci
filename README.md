@@ -52,6 +52,16 @@ Restituisce un oggetto `protocol.route`. Se non viene specificato nessun sockets
 ### protocol.use(callback [, callback])
 Equivale a `protocol('*').use(callback)`.
 
+### protocol.bind(event, listener [, context])
+Associa la funzione `listener` all'evento `event`. Gli eventi esposti sono:
+
+	protocol.bind('connection:up', function(socket) {})
+	protocol.bind('connection:down', function(socket) {})
+	protocol.bind('connection:failed', function(reason) {})
+
+### protocol.unbind(event [, listener, context])
+Cancella la funzione `listener` dall'evento `event`. Se non è specificato alcun listeners, cancella tutte le funzioni legate ad `event`.
+
 ### protocol.reset()
 **Metodo di comodo.** Cancella tutti i plugins, subscribers e metodi remoti caricati. Nessuna comunicazione al server.
 

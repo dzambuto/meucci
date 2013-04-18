@@ -29,7 +29,7 @@ describe('protocol', function() {
 		
 		for(var i = 0; i < 2; ++i) {
 			clients.push(client());
-			clients[i].bind('connected', function() {
+			clients[i].bind('connection:up', function() {
 				if(++counter > 1) done();
 			});
 		}
