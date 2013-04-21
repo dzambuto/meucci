@@ -26,8 +26,7 @@ module.exports = function(grunt) {
 			}
 		},
 		mochaTest: {
-			node: ['test/base.js'],
-			client: ['test/server-test.js']
+      files: ['test/**/*_test.js']
 		},
     mochaTestConfig: {
       options: {
