@@ -8,7 +8,7 @@ proto.route.prototype.subscribe = function() {
 	}
 	
 	if(!this.pattern) {
-		emitWithPromise('subscribe', {'path': path}, sockets);
+		return emitWithPromise('subscribe', {'path': path}, sockets);
 	}
 	
 	return emitWithPromise('subscribe', {'path': path}, undefined);
