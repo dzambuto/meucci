@@ -49,7 +49,7 @@ describe('protocol', function () {
     	it('broadcasts events', function(done) {
     		clients[0]('task/0').subscribe(function(task) {
     			task.should.equal(taskm);
-          	  	done();
+          done();
     		}).then(function(res) {
     			clients[1]('task/0').publish(taskm = 8);
     		});
@@ -108,11 +108,11 @@ describe('protocol', function () {
     	it('broadcasts events', function(done) {
     		clients[0]('task/0').subscribe(function(task) {
     			task.should.equal(taskm);
-          	  	done();
+          done();
     		}).then(function(res) {
     			return clients[1]('task/1').subscribe(function(task) {
     				task.should.equal(taskm);
-    	      	  	done();
+    	      done();
     			});
     		}).then(function(res) {
     			server('task/0').publish(taskm = 8);
