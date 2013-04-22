@@ -54,63 +54,77 @@ describe('protocol', function() {
     });
     
     describe('#publish(data1, data2, ...)', function () {
-  		var counter = 0;
-  		var fn1 = function() { counter++; };
-  		var fn2 = function() { counter-- };
-  		var fn3 = function(a) { if(a == 1) counter++; else counter--; };
-  		var obj = {data: 10, fn: function(a) {counter += this.data; }};
-  		var fn4 = [obj.fn, obj];
-  		var fn5 = function(a, b) { counter = Number(a)*b; };
-  		var fn6 = function(a, b, c, d) { counter = Number(a)+Number(b)+c+d; };
+      var counter = 0;
+      var fn1 = function() { counter++; };
+      var fn2 = function() { counter-- };
+      var fn3 = function(a) { if(a == 1) counter++; else counter--; };
+      var obj = {data: 10, fn: function(a) {counter += this.data; }};
+      var fn4 = [obj.fn, obj];
+      var fn5 = function(a, b) { counter = Number(a)*b; };
+      var fn6 = function(a, b, c, d) { counter = Number(a)+Number(b)+c+d; };
 		
-  		var server = protocol();
+      var server = protocol();
 		
-  		before(function() {
-  			server('add/1').subscribe(fn1, [fn1, null]);
-  			server('add/2').subscribe(fn2);
-  			server('add/3').subscribe(fn4);
-  			server('add/:a').subscribe(fn3);
-  			server('mul/:a').subscribe(fn5);
-  			server('add/:a/:b').subscribe(fn6);
-  		});
+      before(function() {
+        server('foo/1').subscribe(fn1, [fn1, null]);
+        server('foo/2').subscribe(fn2);
+        server('foo/3').subscribe(fn4);
+        server('foo/:a').subscribe(fn3);
+        server('mul/:a').subscribe(fn5);
+        server('foo/:a/:b').subscribe(fn6);
+      });
 		
-  		beforeEach(function(){
-  			counter = 0;
-  		});
+      beforeEach(function(){
+        counter = 0;
+      });
 		
-  		after(function() {
-  			server.reset();
-  		});
-		
-  		it('performs only with local subscribers 1', function(){
-  			server('add/1').publish();
-  			counter.should.be.equal(3);
-  		});
-		
-  		it('performs only with local subscribers 2', function(){
-  			server('add/2').publish();
-  			counter.should.be.equal(-2);
-  		});
-		
-  		it('performs only with local subscribers 3', function(){
-  			server('add/3').publish();
-  			counter.should.be.equal(9);
-  		});
-		
-  		it('performs only with local subscribers 4', function(){
-  			server('mul/3').publish(4);
-  			counter.should.be.equal(12);
-  		});
-		
-  		it('performs only with local subscribers 5', function(){
-  			server('add/3/3').publish(4, 5);
-  			counter.should.be.equal(15);
-  		});
-		
-  		it('does not perform anything', function(){
-  			server('add/2/3/create').publish();
-  			counter.should.be.equal(0);
-  		});
+      after(function() {
+        server.reset();
+      });
+      
+      describe('when there is a callback with no context', function () {
+        describe('and it is explicitly null', function () {
+          it('calls all the subscribed callbacks', function(){
+            server('foo/1').publish();
+            counter.should.be.equal(3);
+          });
+        });
+        
+        describe('and it is not referenced at all', function () {
+          it('calls all the subscribed callbacks', function(){
+            server('foo/2').publish();
+            counter.should.be.equal(-2);
+          });
+        });
+      });
+      
+      describe('when there is a callback with a context', function () {
+        it('gets the context', function(){
+          server('foo/3').publish();
+          counter.should.be.equal(9);
+        });
+      });
+      
+      describe('when there is a parameter and an argument is passed', function () {
+        it('concatenates the argument to the params in the callback', function(){
+          server('mul/3').publish(4);
+          counter.should.be.equal(12);
+        });
+      });
+      
+      describe('when there are two parameters and two arguments are passed', function () {
+        it('concatenates the argument to the params in the callback', function () {
+          server('foo/3/3').publish(4, 5);
+          counter.should.be.equal(15);
+        });
+      });
+      
+      describe('when the topic does not exist', function () {
+        it('does not perform anything', function(){
+          server('foo/2/3/create').publish();
+          counter.should.be.equal(0);
+        });
+      });
     });
     
     describe('#use() and #dispatch()', function () {
