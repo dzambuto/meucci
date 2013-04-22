@@ -1,15 +1,16 @@
 ## protocol
 
-Semplice pub/sub distribuito per browser e node.
+Simple and distributed pub/sub for browsers and node.js
 
-	protocol('tasks/:id').use(tasks.validate, tasks.store)
-	protocol('tasks/:id').subscribe(tasks.show)
-	protocol('tasks/1').publish(task)
-	protocol('tasks/create').respond(tasks.create)
-	protocol('tasks/create').request(task)
+	protocol('tasks/:id').use(tasks.validate, tasks.store);
+	protocol('tasks/:id').subscribe(tasks.show);
+	protocol('tasks/1').publish(task);
+	protocol('tasks/create').respond(tasks.create);
+	protocol('tasks/create').request(task);
+				
 
 ## Example
-Avvia il server:
+Start a server:
 
 	var protocol = require('protocol')
 		, app = protocol();
@@ -18,186 +19,202 @@ Avvia il server:
 	
 	server('messages').use(filterSpams);
 	
-Crea un client:
+Create a client:
 
-	var client = protocol();
+	<script type='text/javascript' src='protocol.js'></script>
+	<script type='text/javascript'>
+
+		var client = protocol();
+		
+		client.connect('http://localhost:8000/');
+		
+		client('messages').subscribe(function(message) {
+			alert(message);
+		});
 	
-	client.connect('http://localhost:8000/');
+	</script>
 	
-	client('messages').subscribe(function(message) {
-		alert(message);
-	});
-	
-Pubblica un messaggio:
+Publish a message:
 
 	client('messages').publish('Hello world!');
+	
+## Dependencies
+
+Protocol depends on two mainstream libraries: [socket.io](https://github.com/LearnBoost/socket.io) and [q](https://github.com/kriskowal/q).
 	
 
 ## API
 
 ### protocol.connect(host [, options])
-Crea una nuova connessione con `host`. Restituisce il socket creato. Più chiamate sovrascrivono il socket esistente. Il parametro `options` contiene le opzioni da passare a `socket.io`.
+Creates a new connection to `host` and returns a new socket. If called more than once it overrides the existing socket. The `options` parameter holds the options you want to pass to  `socket.io`.
 
 ### protocol(path [, sockets])
-Definisce un `path` dato un array di uno o più `sockets`. 
+It defines a `path` for an array of `sockets`. 
 
-	protocol('tasks')
-	protocol('tasks/:id')
-	protocol('tasks/:id/:method?')
-	protocol('tasks/:id/delete')
-	protocol('*')
+	protocol('tasks');
+	protocol('tasks/:id');
+	protocol('tasks/:id/:method?');
+	protocol('tasks/:id/delete');
+	protocol('*');
 
-Restituisce un oggetto `protocol.route`. Se non viene specificato nessun sockets, gli eventi sono propagati in locale e/o tramite `protocol.socket`, se instanziato precedentemente tramite il metodo `protocol.connect`.
+It returns an instance of `protocol.route`. In case there are no sockets added, the events are broadcast only across the local environment or through `protocol.socket`, if it has been instantiated beforehand with `protocol.connect`.
 
 ### protocol.use(callback [, callback])
-Equivale a `protocol('*').use(callback)`.
+Same as `protocol('*').use(callback)`.
 
 ### protocol.bind(event, listener [, context])
-Associa la funzione `listener` all'evento `event`. Gli eventi esposti sono:
+It binds the `listener` to the `event`. Those are the exposed events:
 
-	protocol.bind('connection:up', function(socket) {})
-	protocol.bind('connection:down', function(socket) {})
-	protocol.bind('connection:failed', function(reason) {})
+	protocol.bind('connection:up', function(socket) {});
+	protocol.bind('connection:down', function(socket) {});
+	protocol.bind('connection:failed', function(reason) {});
 
 ### protocol.unbind(event [, listener, context])
-Cancella la funzione `listener` dall'evento `event`. Se non è specificato alcun listeners, cancella tutte le funzioni legate ad `event`.
+Deletes the `listener` from the `event`. When there are no listeners specified, it deletes all the `event`'s callbacks.
 
 ### protocol.reset()
-**Metodo di comodo.** Cancella tutti i plugins, subscribers e metodi remoti caricati. Nessuna comunicazione al server.
+**Utility.** It deletes all the plugins, subscribers and remote methods previously loaded. No communication with the server left.
 
 ### route
-Rappresenta un `path` e possiede tutti i metodi fondamentali. L'oggetto `route` contiene oltre al `path` anche un array di sockets, se specificati nella chiamata a `protocol`.
+It represents a `path` and holds all the main methods. The `route` object holds besides the `path` an array of sockets, if specified within `protocol`.
 
 ### route.subscribe(callback [, callback …])
-Associa una o più callbacks al `path` di `route`.
+It links a callback to the `route`.
 
-	protocol('tasks/1').subscribe()
-	protocol('tasks/1/create').subscribe(callback)
-	protocol('tasks/:id').subscribe([context callback])
+	protocol('tasks/1').subscribe();
+	protocol('tasks/1/create').subscribe(callback);
+	protocol('tasks/:id').subscribe([context callback]);
 	
-Quando il `path` è un pattern (cioè contiene wildcards), l'evento non è comunicato al server e le callbacks associate sono registrate in locale. Se sono associati `sockets`, propaga l'evento subscribe su tutti.
+When `path` is a pattern (i.e. filled with wildcards), it cannot catch event coming from the server but only from the client.
+
+It also subscribes the callback to all the previously registered `sockets`.
 
 ### route.publish(data [, data …])
-Pubblica dei dati nel `path` di `route`.
+This function publishes data into the `route`.
 
-	protocol('tasks/1/delete').publish()
-	protocol('tasks/2/update').publish(task)
-	protocol('tasks/3/changed').publish(task).fail(handleError)
+	protocol('tasks/1/delete').publish();
+	protocol('tasks/2/update').publish(task);
+	protocol('tasks/3/changed').publish(task).fail(handleError);
 
-Non può essere usata con pattern. Si propaga prima in locale, poi al server e poi a tutti gli altri clients iscritti al `path`. 
+It's not possible to use wildcards. It first bubbles through the local environment, then to the server and eventually to all the clients subscribed to `path`.
 
-Restituisce una promise. I metodi utilizzabili sono: `then`, `fail`, ecc.. La promise può essere utilizzata per conoscere l'esito dell'azione. In caso di errore, `fail` ha come argomento l'errore. Se sono associati `sockets`, propaga l'evento su tutti. 
+I returns a promise, whose methods are: `then`, `fail` and all the other supported methods from the [q library](https://github.com/kriskowal/q). The promise is employed to handle the results of the action.
+
+When there is an error, `fail` takes a callback with an error as the only argument. In case of linked `sockets` it propagates it to them.
 
 ### route.respond(callback)
-Associa una callback al `path` di `route`.
+It binds a callback to the `route` and fetches a `request`.
 
-	protocol('local/stat').respond(stat)
-	protocol('local/theme').respond(theme)
+	protocol('local/stat').respond(stat);
+	protocol('local/theme').respond(theme);
 
-Non può essere usata con pattern. L'evento non è propagato al server.
+Wildcards are not allowed.
 
 ### route.request(data [, data …])
-Chiama un metodo del server.
+It calls a `respond` method on the server.
 
-	protocol('tasks/create').request(task)
-	protocol('tasks/1/followers').request().then(callback, handleError)
+	protocol('tasks/create').request(task);
+	protocol('tasks/1/followers').request().then(callback, handleError);
 
-Non può essere usato con pattern. Restituisce una promise. Se sono associati `sockets`, propaga l'evento a tutti i sockets.
+Wildcards are not allowed and it returns a promise. If any `sockets` are linked it propagates to them.
 
 ### route.use(callback [, callback])
-Associa un plugin al `path` di `route`.
+It registers a plugin to the `route`.
 
 	protocol('tasks/:id/*').use(tasks.validate)
 	protocol('tasks/:id/:method').use(notification)
 	
-I plugins sono chiamati soltanto per eventi o chiamate che provengono dal server. I plugins possono modificare la richiesta, bloccarla, filtrarla, ecc.. 
+Plugins are called only for incoming server events. Plugins are useful to manipulate the request, filtering it, or blocking.
 
 ## Routing
-L'oggetto `route` utilizza la stessa conversione stringa->regexp di Express, quindi cose come `:id`, `:id?` e `*` funzionano.
+The `route` object makes use of the same convention of string interpolation employed in the famous [Express](https://github.com/visionmedia/express) framework, so patterns like `:id`, `:id?` and `*` just work.
 
-L'utilizzo dei pattern cambia in base all'operazione che si vuole eseguire, quindi non sempre le cose andranno come ci si aspetta. `publish` e `request` non accettano pattern. 
+Here are some examples of correct usage. 
 
-	// Errato
-	publish('tasks/:id').publish(data)
-	// Corretto
-	publish('tasks/1').publish(data)
+	// Wrong
+	publish('tasks/:id').publish(data);
+	
+	// Correct
+	publish('tasks/1').publish(data);
 
-`subscribe` accetta pattern ma non li comunica al server.
+`subscribe` accepts a pattern but they are not bound to the server.
 
-	// Locale
-	protocol('tasks/1/:method').subscribe(callback)
-	// Locale e remoto
-	protocol('tasks/1/update').subscribe(callback)
+	// Only client
+	protocol('tasks/1/:method').subscribe(callback);
+	
+	// Client and server
+	protocol('tasks/1/update').subscribe(callback);
 
-`protocol` si basa sugli eventi di `socket.io`, che non supportano pattern al momento. La feature è stata chiesta ufficialmente ([Issue 434](https://github.com/LearnBoost/socket.io/issues/434)).
+`protocol` depends upon [socket.io](https://github.com/LearnBoost/socket.io), that doesn't currently support any pattern matching. This feature has been already requested. ([Issue 434](https://github.com/LearnBoost/socket.io/issues/434)).
 
-### Propagazione degli eventi
-I plugins sono utilizzati soltanto per richieste che arrivano dal server. Il metodo `subscribe` non registra l'evento in remoto se il `path` è un pattern. Il metodo `publish` propaga l'evento prima in locale, chiamando i subscribers registrati e poi in remoto, avvisando il server che a sua volta lo propaga ai client registrati. .
+### Event bubbling
+Plugins only work when called remotely, either from server or remote client. The `subscribe` methods doesn't register the event remotely if the `path` contains a pattern. The `publish` method bubbles the event locally first, calling the registered subscribers and then the remote ones, telling the server to call the subsequent remote registered clients as well.
 
 ### Callbacks e plugins
-`subscribe` accetta come argomento funzioni con la seguente signature:
+`subscribe` accepts functions whose signatures are like that:
  
  	function([param …,] data [, data …]) {}
  
- dove `param` indica il valore del campo estratto dal `path` e `data` sono gli argomenti di `publish`.
+ where `param` is the value extracted from `path` and `data` are the arguments passed to `publish`.
 
 	protocol('tasks/:id/:method').subscribe(function(id, method, attr) {})
 	protocol('tasks/1/create').publish({'text': 'This is a task'})
 
-`use` accetta come argomento due tipi di funzioni:
+`use` accepts functions which can be signed in two ways, likewise Express:
 
-	// normal
+	// Canonical
 	function(req, next) {}
-	// handle errors
+	
+	// Error handler
 	function(err, req, next) {}
 
-L'oggetto `req` ha al suo interno: 
+The `req` object contains: 
 
-1. `req.path` - percorso della richiesta
-2. `req.args` - argomenti della richiesti (usati in `publish` e `request`)
-3. `req.rpc` - indica una chiamata remota
-2. `req.params` - array dei parametri estratti da `path`
-3. `req.connection` - socket che ha effettuato la richiesta
-4. `req.done`, `req.error` - funzioni per comunicare l'esito della richiesta al client/server
-5. `req.end` - funzione che chiude la connessione
+1. `req.path` - the request path
+2. `req.args` - arguments passed to the request (used in `publish` and `request`)
+3. `req.rpc` - tells if a request has been made through `request`
+2. `req.params` - array of parameters extracted from `path`
+3. `req.connection` - the socket which the request is coming from
+4. `req.done`, `req.error` - functions for telling the outcome of the request to the caller
+5. `req.end` - function that closes the connection
 
-`request` accetta come argomento funzioni con la seguente signature:
+`request` accepts functions whose signatures are like that: 
 
 	function([param, …] data [, data …] done) {}
 
-dove `done` è la funzione che restituisce il risultato del metodo remoto.
+where `done` is the function that return the outcome of the request.
 
-### Pattern
-Alcuni esempi di pattern supportati.
+### Pattern matching
+Here are some examples of supported patterns:
 
-Path esplicito.
+Explicit Path.
 
-	protocol('date')
+	protocol('date');
 	
-Path con parametro richiesto. I segmenti estratti sono disponibili in `req.params[N]` o in `req.params.NAME`.
+Path with a parameter. The extracted segments are available at `req.params[N]` or `req.params.NAME`.
 
-	protocol('tasks/:id')
+	protocol('tasks/:id');
 
-Path con alcuni parametri, ad esempio `tasks/1/create` e `tasks/2/delete`.
+Path with several parameters, for instance `tasks/1/create` and `tasks/2/delete`.
 
-	protocol('tasks/:id/:method')
+	protocol('tasks/:id/:method');
 	
-Path con un parametro opzionale e uno richiesto, ad esempio `tasks/1` e `tasks/1/delete`.
+Path with a mandatory parameter and an optional one, like `tasks/1` and `tasks/1/delete`.
 
-	protocol('tasks/:id/:method?')
+	protocol('tasks/:id/:method?');
 	
-Path con wildcards, ad esempio `tasks/1`, `tasks/2/comment/5`.
+Path with wildcards, `tasks/1` and `tasks/2/comment/5`.
 
-	protocol('tasks/*')
+	protocol('tasks/*');
 	
-Path con espressioni regolari.
+Path with regular expressions.
 
-	protocol(\/tasks\/(\d+)\)
+	protocol(\/tasks\/(\d+)\);
 
-## Licenza
+## Licence
 (The MIT License)
 
-Copyright (c) 2012 Daniele Zambuto <<mailto:daniele.zambuto@gmail.com>>
+Copyright &copy; 2013 Daniele Zambuto <<mailto:daniele.zambuto@gmail.com>>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
