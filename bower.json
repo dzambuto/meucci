@@ -1,0 +1,10 @@
+{
+  "name": "meucci",
+  "version": "0.1.1",
+  "main": "build/meucci-client.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components"
+  ]
+}
