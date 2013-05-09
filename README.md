@@ -1,44 +1,51 @@
 ![image](http://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Antonio_Meucci.jpg/220px-Antonio_Meucci.jpg)
 
-# meucci
+## meucci
 
 Simple and distributed pub/sub for browsers and node.js
 
-	meucci('tasks/:id').use(tasks.validate, tasks.store);
-	meucci('tasks/:id').subscribe(tasks.show);
-	meucci('tasks/1').publish(task);
-	meucci('tasks/create').respond(tasks.create);
-	meucci('tasks/create').request(task);
-				
+```javascript
+meucci('tasks/:id').use(tasks.validate, tasks.store);
+meucci('tasks/:id').subscribe(tasks.show);
+meucci('tasks/1').publish(task);
+meucci('tasks/create').respond(tasks.create);
+meucci('tasks/create').request(task);
+```
 
 ## Example
 Start a server:
 
-	var meucci = require('meucci')
-		, app = meucci();
-		
-	server.listen(8000);
+```javascript
+var meucci = require('meucci')
+	, app = meucci();
 	
-	server('messages').use(filterSpams);
+server.listen(8000);
+
+server('messages').use(filterSpams);
+```
 	
 Create a client:
 
-	<script type='text/javascript' src='meucci.js'></script>
-	<script type='text/javascript'>
+```html
+<script type='text/javascript' src='meucci.js'></script>
+<script type='text/javascript'>
 
-		var client = meucci();
-		
-		client.connect('http://localhost:8000/');
-		
-		client('messages').subscribe(function(message) {
-			alert(message);
-		});
+	var client = meucci();
 	
-	</script>
+	client.connect('http://localhost:8000/');
+	
+	client('messages').subscribe(function(message) {
+		alert(message);
+	});
+
+</script>
+```
 	
 Publish a message:
 
-	client('messages').publish('Hello world!');
+```javascript
+client('messages').publish('Hello world!');
+```
 	
 ## Dependencies
 
@@ -48,13 +55,13 @@ meucci depends on two mainstream libraries: [socket.io](https://github.com/Learn
 
 In a node.js environment just issue
 
-```
+```shell
 $ npm install meucci
 ```
 
 For the browser you can pick the `build/meucci-client.js` file, or whether you are a [bower](https://github.com/bower/bower) user, just issue
 
-```
+```shell
 $ bower install meucci
 ```
 
@@ -66,23 +73,31 @@ Creates a new connection to `host` and returns a new socket. If called more than
 ### meucci(path [, sockets])
 It defines a `path` for an array of `sockets`. 
 
-	meucci('tasks');
-	meucci('tasks/:id');
-	meucci('tasks/:id/:method?');
-	meucci('tasks/:id/delete');
-	meucci('*');
+```javascript
+meucci('tasks');
+meucci('tasks/:id');
+meucci('tasks/:id/:method?');
+meucci('tasks/:id/delete');
+meucci('*');
+```
 
 It returns an instance of `meucci.route`. In case there are no sockets added, the events are broadcast only across the local environment or through `meucci.socket`, if it has been instantiated beforehand with `meucci.connect`.
 
 ### meucci.use(callback [, callback])
-Same as `meucci('*').use(callback)`.
+Same as:
+
+```javascript
+meucci('*').use(callback);
+```
 
 ### meucci.bind(event, listener [, context])
 It binds the `listener` to the `event`. Those are the exposed events:
 
-	meucci.bind('connection:up', function(socket) {});
-	meucci.bind('connection:down', function(socket) {});
-	meucci.bind('connection:failed', function(reason) {});
+```javascript
+meucci.bind('connection:up', function(socket) {});
+meucci.bind('connection:down', function(socket) {});
+meucci.bind('connection:failed', function(reason) {});
+```
 
 ### meucci.unbind(event [, listener, context])
 Deletes the `listener` from the `event`. When there are no listeners specified, it deletes all the `event`'s callbacks.
@@ -96,9 +111,11 @@ It represents a `path` and holds all the main methods. The `route` object holds 
 ### route.subscribe(callback [, callback …])
 It links a callback to the `route`.
 
-	meucci('tasks/1').subscribe();
-	meucci('tasks/1/create').subscribe(callback);
-	meucci('tasks/:id').subscribe([context callback]);
+```javascript
+meucci('tasks/1').subscribe();
+meucci('tasks/1/create').subscribe(callback);
+meucci('tasks/:id').subscribe([context callback]);
+```
 	
 When `path` is a pattern (i.e. filled with wildcards), it cannot catch event coming from the server but only from the client.
 
@@ -107,9 +124,11 @@ It also subscribes the callback to all the previously registered `sockets`.
 ### route.publish(data [, data …])
 This function publishes data into the `route`.
 
-	meucci('tasks/1/delete').publish();
-	meucci('tasks/2/update').publish(task);
-	meucci('tasks/3/changed').publish(task).fail(handleError);
+```javascript
+meucci('tasks/1/delete').publish();
+meucci('tasks/2/update').publish(task);
+meucci('tasks/3/changed').publish(task).fail(handleError);
+```
 
 It's not possible to use wildcards. It first bubbles through the local environment, then to the server and eventually to all the clients subscribed to `path`.
 
@@ -120,24 +139,30 @@ When there is an error, `fail` takes a callback with an error as the only argume
 ### route.respond(callback)
 It binds a callback to the `route` and fetches a `request`.
 
-	meucci('local/stat').respond(stat);
-	meucci('local/theme').respond(theme);
+```javascript
+meucci('local/stat').respond(stat);
+meucci('local/theme').respond(theme);
+```
 
 Wildcards are not allowed.
 
 ### route.request(data [, data …])
 It calls a `respond` method on the server.
 
-	meucci('tasks/create').request(task);
-	meucci('tasks/1/followers').request().then(callback, handleError);
+```javascript
+meucci('tasks/create').request(task);
+meucci('tasks/1/followers').request().then(callback, handleError);
+```
 
 Wildcards are not allowed and it returns a promise. If any `sockets` are linked it propagates to them.
 
 ### route.use(callback [, callback])
 It registers a plugin to the `route`.
 
-	meucci('tasks/:id/*').use(tasks.validate)
-	meucci('tasks/:id/:method').use(notification)
+```javascript
+meucci('tasks/:id/*').use(tasks.validate);
+meucci('tasks/:id/:method').use(notification);
+```
 	
 Plugins are called only for incoming server events. Plugins are useful to manipulate the request, filtering it, or blocking.
 
@@ -146,19 +171,23 @@ The `route` object makes use of the same convention of string interpolation empl
 
 Here are some examples of correct usage. 
 
-	// Wrong
-	publish('tasks/:id').publish(data);
-	
-	// Correct
-	publish('tasks/1').publish(data);
+```javascript
+// Wrong
+publish('tasks/:id').publish(data);
+
+// Correct
+publish('tasks/1').publish(data);
+```
 
 `subscribe` accepts a pattern but they are not bound to the server.
 
-	// Only client
-	meucci('tasks/1/:method').subscribe(callback);
-	
-	// Client and server
-	meucci('tasks/1/update').subscribe(callback);
+```javascript
+// Only client
+meucci('tasks/1/:method').subscribe(callback);
+
+// Client and server
+meucci('tasks/1/update').subscribe(callback);
+```
 
 `meucci` depends upon [socket.io](https://github.com/LearnBoost/socket.io), that doesn't currently support any pattern matching. This feature has been already requested. ([Issue 434](https://github.com/LearnBoost/socket.io/issues/434)).
 
@@ -167,21 +196,27 @@ Plugins only work when called remotely, either from server or remote client. The
 
 ### Callbacks e plugins
 `subscribe` accepts functions whose signatures are like that:
- 
- 	function([param …,] data [, data …]) {}
+
+```javascript 
+function([param …,] data [, data …]) {}
+```
  
  where `param` is the value extracted from `path` and `data` are the arguments passed to `publish`.
-
-	meucci('tasks/:id/:method').subscribe(function(id, method, attr) {})
-	meucci('tasks/1/create').publish({'text': 'This is a task'})
+ 
+```javascript
+meucci('tasks/:id/:method').subscribe(function(id, method, attr) {});
+meucci('tasks/1/create').publish({'text': 'This is a task'});
+```
 
 `use` accepts functions which can be signed in two ways, likewise Express:
 
-	// Canonical
-	function(req, next) {}
-	
-	// Error handler
-	function(err, req, next) {}
+```javascript
+// Canonical
+function(req, next) {}
+
+// Error handler
+function(err, req, next) {}
+```
 
 The `req` object contains: 
 
@@ -195,7 +230,9 @@ The `req` object contains:
 
 `request` accepts functions whose signatures are like that: 
 
-	function([param, …] data [, data …] done) {}
+```javascript
+function([param, …] data [, data …] done) {}
+```
 
 where `done` is the function that return the outcome of the request.
 
@@ -204,27 +241,39 @@ Here are some examples of supported patterns:
 
 Explicit Path.
 
-	meucci('date');
+```javascript
+meucci('date');
+```
 	
 Path with a parameter. The extracted segments are available at `req.params[N]` or `req.params.NAME`.
 
-	meucci('tasks/:id');
+```javascript
+meucci('tasks/:id');
+```
 
 Path with several parameters, for instance `tasks/1/create` and `tasks/2/delete`.
 
-	meucci('tasks/:id/:method');
+```javascript
+meucci('tasks/:id/:method');
+```
 	
 Path with a mandatory parameter and an optional one, like `tasks/1` and `tasks/1/delete`.
 
-	meucci('tasks/:id/:method?');
+```javascript
+meucci('tasks/:id/:method?');
+```
 	
 Path with wildcards, `tasks/1` and `tasks/2/comment/5`.
 
-	meucci('tasks/*');
+```javascript
+meucci('tasks/*');
+```
 	
 Path with regular expressions.
 
-	meucci(\/tasks\/(\d+)\);
+```javascript
+meucci(\/tasks\/(\d+)\);
+```
 
 ## Licence
 (The MIT License)
