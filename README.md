@@ -41,7 +41,20 @@ Publish a message:
 ## Dependencies
 
 meucci depends on two mainstream libraries: [socket.io](https://github.com/LearnBoost/socket.io) and [q](https://github.com/kriskowal/q).
-	
+
+## Installation
+
+In a node.js environment just issue
+
+```
+$ npm install meucci
+```
+
+For the browser you can pick the `build/meucci-client.js` file, or whether you are a [bower](https://github.com/bower/bower) user, just issue
+
+```
+$ bower install meucci
+```
 
 ## API
 
