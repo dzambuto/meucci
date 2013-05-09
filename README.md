@@ -1,3 +1,5 @@
+![image](http://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Antonio_Meucci.jpg/220px-Antonio_Meucci.jpg)
+
 ## meucci
 
 Simple and distributed pub/sub for browsers and node.js
