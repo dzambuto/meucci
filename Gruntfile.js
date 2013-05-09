@@ -40,12 +40,12 @@ module.exports = function(grunt) {
   });
 	
   grunt.registerTask('test', [
-  'mochaTest'
+    'mochaTest'
   ]);
   
   grunt.registerTask('default', [
-  'concat',
-  'mochaTest',
-  'uglify'
+    'concat',
+    'mochaTest',
+    'uglify'
   ]);
 };

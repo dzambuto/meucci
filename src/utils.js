@@ -1,5 +1,3 @@
-// utility
-// thanks TJ
 function pathtoRegexp(path, keys, sensitive, strict) {
   if (path instanceof RegExp) return path;
   if (path instanceof Array) path = '(' + path.join('|') + ')';
@@ -21,7 +19,6 @@ function pathtoRegexp(path, keys, sensitive, strict) {
   return new RegExp('^' + path + '$', sensitive ? '' : 'i');
 }
 
-// Thanks TJ
 function merge(a, b){
   if (a && b) {
     for (var key in b) {

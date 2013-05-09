@@ -1,13 +1,11 @@
 var proto = {};
 
-// OK
 proto.handle = function(path, args) {
   for(var i = 0; i < this.callbacks.length; ++i) {
     this.callbacks[i](path, args);
   }	
 };
 
-// OK
 proto.rpc = function(path, args, done) {	
   var i = 0, self = this;
 
@@ -30,7 +28,6 @@ proto.rpc = function(path, args, done) {
   next();
 };
 
-// OK (server dependency)
 proto.dispatch = function(req, done) {
   var i = 0, rpc = req.rpc, self = this;
   function next(err) {
@@ -61,12 +58,10 @@ proto.dispatch = function(req, done) {
   next();
 };
 
-// OK
 proto.use = function() {
   return this('*').use.apply(null, arguments);
 };
 
-// OK
 proto.reset = function() {
   this.callbacks = [];
   this.plugins = [];

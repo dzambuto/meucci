@@ -1,11 +1,11 @@
 var should = require('should');
-var protocol = require('../build/protocol');
+var meucci = require('../build/meucci');
 
-describe('protocol', function() {
-  describe('protocol("topic")', function () {
+describe('meucci', function() {
+  describe('meucci("topic")', function () {
     
-    it('is an instance of protocol.route', function(){
-      var server = protocol();
+    it('is an instance of meucci.route', function(){
+      var server = meucci();
       server('topic').should.be.an.instanceOf(server.route);
     });
     
@@ -15,13 +15,13 @@ describe('protocol', function() {
       var fn3 = [fn1, null];
 		
       it('accepts plain functions', function(){
-        var server = protocol();
+        var server = meucci();
         server('add/:a/:b').subscribe(fn1, fn2);
         server.callbacks.should.have.length(2);
       });
 		
       it('accepts function/context pair', function(){
-        var server = protocol();
+        var server = meucci();
         server('add/:a/:b').subscribe(fn1, fn2);
         server('add/:a/:b').subscribe(fn3);
         server.callbacks.should.have.length(3);
@@ -33,7 +33,7 @@ describe('protocol', function() {
       var fn2 = function(a, b) { return a - b; };
       var fn3 = function(a, b) { return a - b; };
 		
-      var server = protocol();
+      var server = meucci();
 		
       before(function() {
         server('add/:a/:b').subscribe(fn1);
@@ -63,7 +63,7 @@ describe('protocol', function() {
       var fn5 = function(a, b) { counter = Number(a)*b; };
       var fn6 = function(a, b, c, d) { counter = Number(a)+Number(b)+c+d; };
 		
-      var server = protocol();
+      var server = meucci();
 		
       before(function() {
         server('foo/1').subscribe(fn1, [fn1, null]);
@@ -134,13 +134,13 @@ describe('protocol', function() {
       var md3 = function(req, next) { counter.push('md3'); next(); };
       var fn1 = function() { counter.push('fn1'); };
 		
-      var server = protocol();
+      var server = meucci();
 		
       afterEach(function() {
         counter = [];
       });
 		
-      it('adds an element in protocol.plugins', function(){
+      it('adds an element in meucci.plugins', function(){
         server('topic1').use(md1, md2);
         server('topic2').use(md3).subscribe(fn1);
         server.plugins.should.have.length(3);
@@ -204,9 +204,9 @@ describe('protocol', function() {
     });
   });
   
-  describe('protocol("topic/:id/:method").match', function() {
+  describe('meucci("topic/:id/:method").match', function() {
     it('returns an array of parameters', function() {
-      var server = protocol()
+      var server = meucci()
       , params = [];
 				
       server('topic/:id/:id').match('topic/123w/create', params);
@@ -214,11 +214,11 @@ describe('protocol', function() {
     });
   });
 	
-  describe('protocol("add/:a/:b").callback(fn)', function() {
+  describe('meucci("add/:a/:b").callback(fn)', function() {
     var fn = function(a, b) { return a + b; };
 		
     it('has the fn property that equals to the original function', function() {
-      var server = protocol()
+      var server = meucci()
       , res = server('add/:a/:b').callback(fn);
 				
       res.should.have.property('match');
@@ -226,14 +226,14 @@ describe('protocol', function() {
     });
 		
     it('performs when the path matches', function(){
-      var server = protocol()
+      var server = meucci()
       , res = server('add/:a/:b').callback(fn);
 				
       res('add/1/1', []).should.be.equal('11');
     });
 		
     it('does not perform when the path does not match', function(){
-      var server = protocol()
+      var server = meucci()
       , res = server('add/:a/:b').callback(fn);
 				
       should.not.exist(res('add/1/1/3', []));

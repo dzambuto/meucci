@@ -1,19 +1,19 @@
-## protocol
+## meucci
 
 Simple and distributed pub/sub for browsers and node.js
 
-	protocol('tasks/:id').use(tasks.validate, tasks.store);
-	protocol('tasks/:id').subscribe(tasks.show);
-	protocol('tasks/1').publish(task);
-	protocol('tasks/create').respond(tasks.create);
-	protocol('tasks/create').request(task);
+	meucci('tasks/:id').use(tasks.validate, tasks.store);
+	meucci('tasks/:id').subscribe(tasks.show);
+	meucci('tasks/1').publish(task);
+	meucci('tasks/create').respond(tasks.create);
+	meucci('tasks/create').request(task);
 				
 
 ## Example
 Start a server:
 
-	var protocol = require('protocol')
-		, app = protocol();
+	var meucci = require('meucci')
+		, app = meucci();
 		
 	server.listen(8000);
 	
@@ -21,10 +21,10 @@ Start a server:
 	
 Create a client:
 
-	<script type='text/javascript' src='protocol.js'></script>
+	<script type='text/javascript' src='meucci.js'></script>
 	<script type='text/javascript'>
 
-		var client = protocol();
+		var client = meucci();
 		
 		client.connect('http://localhost:8000/');
 		
@@ -40,50 +40,50 @@ Publish a message:
 	
 ## Dependencies
 
-Protocol depends on two mainstream libraries: [socket.io](https://github.com/LearnBoost/socket.io) and [q](https://github.com/kriskowal/q).
+meucci depends on two mainstream libraries: [socket.io](https://github.com/LearnBoost/socket.io) and [q](https://github.com/kriskowal/q).
 	
 
 ## API
 
-### protocol.connect(host [, options])
+### meucci.connect(host [, options])
 Creates a new connection to `host` and returns a new socket. If called more than once it overrides the existing socket. The `options` parameter holds the options you want to pass to  `socket.io`.
 
-### protocol(path [, sockets])
+### meucci(path [, sockets])
 It defines a `path` for an array of `sockets`. 
 
-	protocol('tasks');
-	protocol('tasks/:id');
-	protocol('tasks/:id/:method?');
-	protocol('tasks/:id/delete');
-	protocol('*');
+	meucci('tasks');
+	meucci('tasks/:id');
+	meucci('tasks/:id/:method?');
+	meucci('tasks/:id/delete');
+	meucci('*');
 
-It returns an instance of `protocol.route`. In case there are no sockets added, the events are broadcast only across the local environment or through `protocol.socket`, if it has been instantiated beforehand with `protocol.connect`.
+It returns an instance of `meucci.route`. In case there are no sockets added, the events are broadcast only across the local environment or through `meucci.socket`, if it has been instantiated beforehand with `meucci.connect`.
 
-### protocol.use(callback [, callback])
-Same as `protocol('*').use(callback)`.
+### meucci.use(callback [, callback])
+Same as `meucci('*').use(callback)`.
 
-### protocol.bind(event, listener [, context])
+### meucci.bind(event, listener [, context])
 It binds the `listener` to the `event`. Those are the exposed events:
 
-	protocol.bind('connection:up', function(socket) {});
-	protocol.bind('connection:down', function(socket) {});
-	protocol.bind('connection:failed', function(reason) {});
+	meucci.bind('connection:up', function(socket) {});
+	meucci.bind('connection:down', function(socket) {});
+	meucci.bind('connection:failed', function(reason) {});
 
-### protocol.unbind(event [, listener, context])
+### meucci.unbind(event [, listener, context])
 Deletes the `listener` from the `event`. When there are no listeners specified, it deletes all the `event`'s callbacks.
 
-### protocol.reset()
+### meucci.reset()
 **Utility.** It deletes all the plugins, subscribers and remote methods previously loaded. No communication with the server left.
 
 ### route
-It represents a `path` and holds all the main methods. The `route` object holds besides the `path` an array of sockets, if specified within `protocol`.
+It represents a `path` and holds all the main methods. The `route` object holds besides the `path` an array of sockets, if specified within `meucci`.
 
 ### route.subscribe(callback [, callback …])
 It links a callback to the `route`.
 
-	protocol('tasks/1').subscribe();
-	protocol('tasks/1/create').subscribe(callback);
-	protocol('tasks/:id').subscribe([context callback]);
+	meucci('tasks/1').subscribe();
+	meucci('tasks/1/create').subscribe(callback);
+	meucci('tasks/:id').subscribe([context callback]);
 	
 When `path` is a pattern (i.e. filled with wildcards), it cannot catch event coming from the server but only from the client.
 
@@ -92,9 +92,9 @@ It also subscribes the callback to all the previously registered `sockets`.
 ### route.publish(data [, data …])
 This function publishes data into the `route`.
 
-	protocol('tasks/1/delete').publish();
-	protocol('tasks/2/update').publish(task);
-	protocol('tasks/3/changed').publish(task).fail(handleError);
+	meucci('tasks/1/delete').publish();
+	meucci('tasks/2/update').publish(task);
+	meucci('tasks/3/changed').publish(task).fail(handleError);
 
 It's not possible to use wildcards. It first bubbles through the local environment, then to the server and eventually to all the clients subscribed to `path`.
 
@@ -105,24 +105,24 @@ When there is an error, `fail` takes a callback with an error as the only argume
 ### route.respond(callback)
 It binds a callback to the `route` and fetches a `request`.
 
-	protocol('local/stat').respond(stat);
-	protocol('local/theme').respond(theme);
+	meucci('local/stat').respond(stat);
+	meucci('local/theme').respond(theme);
 
 Wildcards are not allowed.
 
 ### route.request(data [, data …])
 It calls a `respond` method on the server.
 
-	protocol('tasks/create').request(task);
-	protocol('tasks/1/followers').request().then(callback, handleError);
+	meucci('tasks/create').request(task);
+	meucci('tasks/1/followers').request().then(callback, handleError);
 
 Wildcards are not allowed and it returns a promise. If any `sockets` are linked it propagates to them.
 
 ### route.use(callback [, callback])
 It registers a plugin to the `route`.
 
-	protocol('tasks/:id/*').use(tasks.validate)
-	protocol('tasks/:id/:method').use(notification)
+	meucci('tasks/:id/*').use(tasks.validate)
+	meucci('tasks/:id/:method').use(notification)
 	
 Plugins are called only for incoming server events. Plugins are useful to manipulate the request, filtering it, or blocking.
 
@@ -140,12 +140,12 @@ Here are some examples of correct usage.
 `subscribe` accepts a pattern but they are not bound to the server.
 
 	// Only client
-	protocol('tasks/1/:method').subscribe(callback);
+	meucci('tasks/1/:method').subscribe(callback);
 	
 	// Client and server
-	protocol('tasks/1/update').subscribe(callback);
+	meucci('tasks/1/update').subscribe(callback);
 
-`protocol` depends upon [socket.io](https://github.com/LearnBoost/socket.io), that doesn't currently support any pattern matching. This feature has been already requested. ([Issue 434](https://github.com/LearnBoost/socket.io/issues/434)).
+`meucci` depends upon [socket.io](https://github.com/LearnBoost/socket.io), that doesn't currently support any pattern matching. This feature has been already requested. ([Issue 434](https://github.com/LearnBoost/socket.io/issues/434)).
 
 ### Event bubbling
 Plugins only work when called remotely, either from server or remote client. The `subscribe` methods doesn't register the event remotely if the `path` contains a pattern. The `publish` method bubbles the event locally first, calling the registered subscribers and then the remote ones, telling the server to call the subsequent remote registered clients as well.
@@ -157,8 +157,8 @@ Plugins only work when called remotely, either from server or remote client. The
  
  where `param` is the value extracted from `path` and `data` are the arguments passed to `publish`.
 
-	protocol('tasks/:id/:method').subscribe(function(id, method, attr) {})
-	protocol('tasks/1/create').publish({'text': 'This is a task'})
+	meucci('tasks/:id/:method').subscribe(function(id, method, attr) {})
+	meucci('tasks/1/create').publish({'text': 'This is a task'})
 
 `use` accepts functions which can be signed in two ways, likewise Express:
 
@@ -189,27 +189,27 @@ Here are some examples of supported patterns:
 
 Explicit Path.
 
-	protocol('date');
+	meucci('date');
 	
 Path with a parameter. The extracted segments are available at `req.params[N]` or `req.params.NAME`.
 
-	protocol('tasks/:id');
+	meucci('tasks/:id');
 
 Path with several parameters, for instance `tasks/1/create` and `tasks/2/delete`.
 
-	protocol('tasks/:id/:method');
+	meucci('tasks/:id/:method');
 	
 Path with a mandatory parameter and an optional one, like `tasks/1` and `tasks/1/delete`.
 
-	protocol('tasks/:id/:method?');
+	meucci('tasks/:id/:method?');
 	
 Path with wildcards, `tasks/1` and `tasks/2/comment/5`.
 
-	protocol('tasks/*');
+	meucci('tasks/*');
 	
 Path with regular expressions.
 
-	protocol(\/tasks\/(\d+)\);
+	meucci(\/tasks\/(\d+)\);
 
 ## Licence
 (The MIT License)

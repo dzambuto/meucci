@@ -1,8 +1,8 @@
 var should = require('should');
-var protocol = require('../build/protocol');
-var client = require('../build/protocol-client');
+var meucci = require('../build/meucci');
+var client = require('../build/meucci-client');
 
-describe('protocol', function () {
+describe('meucci', function () {
   describe('end to end communitication', function() {
     var socketURL = 'http://localhost:3000'
     , options = {'force new connection': true}
@@ -11,7 +11,7 @@ describe('protocol', function () {
     , task = [0, 0]
     , taskm = 0
     , counter = 0
-    , server = protocol();
+    , server = meucci();
 		
 
     before(function(done) {

@@ -2,7 +2,7 @@
   if (typeof module !== 'undefined' && module.exports) {
     exports = module.exports = factory(require('socket.io-client'), require('q'));
   } else if (typeof define === 'function' && define.amd) {
-    define('protocol', ['io', 'Q'], factory);
+    define('meucci', ['io', 'Q'], factory);
   } else {
     root.protocol = factory(root.io, root.Q);
   }

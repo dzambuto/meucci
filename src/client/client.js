@@ -26,7 +26,6 @@ proto.route.prototype.unsubscribe = function() {
   return this;
 };
 
-// OK
 proto.route.prototype.publish = function() {
   var args = Array.prototype.slice.apply(arguments)
   , path = this.path

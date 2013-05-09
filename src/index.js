@@ -1,16 +1,16 @@
-function createProtocol() {
-  function protocol(path, sockets) {
+function createMeucci() {
+  function meucci(path, sockets) {
     if('string' == typeof path) {
-      return new protocol.route(path, sockets, protocol);
+      return new meucci.route(path, sockets, meucci);
     }
-    return protocol;
+    return meucci;
   }
 
-  merge(protocol, proto);
+  merge(meucci, proto);
 	
-  protocol.procedures = [];
-  protocol.callbacks = [];
-  protocol.plugins = [];
+  meucci.procedures = [];
+  meucci.callbacks = [];
+  meucci.plugins = [];
 
-  return protocol;
+  return meucci;
 }

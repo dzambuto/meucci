@@ -8,7 +8,6 @@ proto.route = function(path, sockets, parent, options) {
   return this;
 };
 
-// OK
 proto.route.prototype.use = function() {
   for(var i = 0; i < arguments.length; ++i) {
     this.parent.plugins.push(this.middleware(arguments[i]));
@@ -16,14 +15,12 @@ proto.route.prototype.use = function() {
   return this;
 };
 
-// OK
 proto.route.prototype.respond = function() {
   if(!arguments.length) return this;
   this.parent.procedures.push(this.callback(arguments[0]));
   return this;
 };
 
-// OK
 proto.route.prototype.request = function() {	
   var args = Array.prototype.slice.apply(arguments)
   , path = this.path
@@ -34,7 +31,6 @@ proto.route.prototype.request = function() {
   return emitWithPromise('event', {'path': path, 'args': args, 'rpc': true}, sockets);
 };
 
-// OK
 proto.route.prototype.middleware = function(fn) {
   var self = this;
   var arity = fn.length;
@@ -54,7 +50,7 @@ proto.route.prototype.middleware = function(fn) {
   }
 };
 
-// OK
+
 // TODO - Rewrite it!
 proto.route.prototype.callback = function(fn) {
   var self = this;
@@ -83,8 +79,6 @@ proto.route.prototype.callback = function(fn) {
   return res;
 };
 
-// OK
-// Thanks TJ
 proto.route.prototype.match = function(path, params) {
   var keys = this.keys
   , qsIndex = path.indexOf('?')
