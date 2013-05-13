@@ -17,7 +17,7 @@ Start a server:
 
 ```javascript
 var meucci = require('meucci')
-	, app = meucci();
+  , app = meucci();
 	
 server.listen(8000);
 
@@ -275,7 +275,7 @@ Path with regular expressions.
 meucci(\/tasks\/(\d+)\);
 ```
 
-## Licence
+## License
 (The MIT License)
 
 Copyright &copy; 2013 Daniele Zambuto <<mailto:daniele.zambuto@gmail.com>>
