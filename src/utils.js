@@ -1,3 +1,4 @@
+// Thanks to TJ Holowaychuk (visionmedia) 
 function pathtoRegexp(path, keys, sensitive, strict) {
   if (path instanceof RegExp) return path;
   if (path instanceof Array) path = '(' + path.join('|') + ')';

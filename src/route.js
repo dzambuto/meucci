@@ -32,19 +32,35 @@ proto.route.prototype.request = function() {
 };
 
 proto.route.prototype.middleware = function(fn) {
-  var self = this;
-  var arity = fn.length;
+  var self = this
+  		, arity = fn.length;
 
-  if(2 == arity) {
-    return function(req, next) {
-      if(self.match(req.path, req.params)) return fn(req, next);
+	if('function' == typeof fn.dispatch) {
+		var app = fn;
+		
+		self.parent.bind('service:started', function() {
+			if(self.parent.socket) app.socket = self.parent.socket
+			if(self.parent.io) app.io = self.parent.io;
+		});
+		
+		app.trigger('app:mounted', self.parent);
+		
+		return function(req, res, next) {
+			if(self.match(req.path, req.params)) return app.dispatch(req, res, next);
+			next();
+		}
+	}
+	
+  if(3 == arity) {
+    return function(req, res, next) {
+      if(self.match(req.path, req.params)) return fn(req, res, next);
       next();
     };
   }
 
-  if(3 == arity) {
-    return function(err, req, next) {
-      if(self.match(req.path, req.params)) return fn(err, req, next);
+  if(4 == arity) {
+    return function(err, req, res, next) {
+      if(self.match(req.path, req.params)) return fn(err, req, res, next);
       next();
     };
   }
@@ -56,6 +72,8 @@ proto.route.prototype.callback = function(fn) {
   var self = this;
   var f, ctx;
 
+	if('function' == typeof fn.dispatch) return;
+	
   if(fn instanceof Array) {
     f = fn[0];
     ctx = fn[1];
@@ -64,13 +82,27 @@ proto.route.prototype.callback = function(fn) {
     ctx = null;
   }
 
-  var res = function(path, args, next) {
-    var params = [];
-    if(self.match(path, params)) {
-      var nargs = params.concat(args || []);
-      next && nargs.push(next);
-      return f.apply(ctx, nargs);
+  var res = function(req, res, next) {
+    req.params = [];
+    if(self.match(req.path, req.params)) {
+      var nargs = req.params;
+			nargs = req.args ? nargs.concat(req.args) : nargs;
+			
+			if(req.rpc) {
+				function done(data) {
+					res.send(data);
+					return;
+				}
+				nargs.push(done);
+			}
+			
+			var data = f.apply(ctx, nargs);
+			
+			if(req.rpc && !res.messageSent) res.send(data);
+			if(!req.rpc) return next();
+			return data;
     }
+		next();
   };
 
   res.match = function(path, mt) { return mt == f && self.match(path, []); };

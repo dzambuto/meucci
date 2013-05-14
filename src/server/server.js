@@ -12,8 +12,10 @@ proto.route.prototype.unsubscribe = function() {
 };
 
 proto.route.prototype.publish = function() {
-	var args = Array.prototype.slice.apply(arguments);
-	this.parent.handle(this.path, args);
+	var args = Array.prototype.slice.apply(arguments)
+	, path = this.path;
+	
+	this.parent.handle(path, args);
 	this.parent.broadcast(this.path, args, this.sockets);
 	return this;
 };
@@ -27,57 +29,16 @@ proto.listen = function(host, options) {
 	});
 	
 	this.io.sockets.on('connection', function(socket) {
-		self.init(socket);
+		self.initSocket(socket);
 		self.trigger('client:connected', socket);
 	});
 
 	return io;
 };
 
-proto.init = function(socket) {
+proto.events = function(socket) {
 	var self = this;
-
-	function onEvent(message, done) {
-		var req = {};		
-		// Init request object
-		req.connection = socket;
-		req.app = self;
-		req.params = [];
-
-		// send, end, error function
-		req.error = function(err) {
-			done({'err': err || 'Unknown Error.'});
-		};
-
-		req.done = function() {
-			done({'res': true});
-		};
-
-		req.send = function(data) {
-			done({'res': data || true});
-		};
-
-		req.end = function(data) {
-			done({'res': data || true});
-			this.connection.disconnect();
-		};
-
-		// Parse message data
-		// @param path, args
-		if(message.path && message.args) {
-			req.path = message.path;
-			req.args = message.args;
-			req.rpc = message.rpc || false;
-		}
-		else {
-			return done({'err': 'Invalid message.'});
-		}
-
-		self.dispatch(req, done);
-	}
-
-	socket.on('event', onEvent);
-
+	
 	function onDisconnect() {
 		self.trigger('client:disconnected', socket);
 	}

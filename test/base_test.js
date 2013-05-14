@@ -129,10 +129,14 @@ describe('meucci', function() {
     
     describe('#use() and #dispatch()', function () {
       var counter = [];
-      var md1 = function(req, next) { counter.push('md1'); next(); };
-      var md2 = function(err, req, next) { counter.push('md2-err'); next(err); };
-      var md3 = function(req, next) { counter.push('md3'); next(); };
+      var md1 = function(req, res, next) { counter.push('md1'); next(); };
+      var md2 = function(err, req, res, next) { counter.push('md2-err'); next(err); };
+      var md3 = function(req, res, next) { counter.push('md3'); next(); };
       var fn1 = function() { counter.push('fn1'); };
+			
+			var res = {};
+			res.error = function(err) { console.log('miao'); }
+			res.broadcast = function(err) { console.log('broadcast'); }
 		
       var server = meucci();
 		
@@ -146,27 +150,26 @@ describe('meucci', function() {
         server.plugins.should.have.length(3);
       });
 		
-      it('dispatches a request', function(){
-        server.dispatch({path: 'topic1', args: [], params: []}, function(res) { 
-          res.should.have.property('res');
-          res.res.should.be.true;
+      it('dispatches a request', function(done){
+        server.dispatch({path: 'topic1', args: [], params: []}, res, function(res) { 
+          res.should.not.exist;
           counter.should.have.length(1);
           counter[0].should.be.equal('md1');
+					done();
         });
       });
 		
       it('dispatches a request and triggers to subscribers', function(){
-        server.dispatch({path: 'topic2', args: [], params: []}, function(res) { 
-          res.should.have.property('res');
-          res.res.should.be.true;
+        server.dispatch({path: 'topic2', args: [], params: []}, res, function(res) { 
+          res.should.not.exist;
           counter.should.have.length(2);
           counter[0].should.be.equal('md3');
           counter[1].should.be.equal('fn1');
         });
       });
 		
-      it('dispatches a request with parameters', function(){
-        var md4 = function(req, next) { 
+      it('dispatches a request with parameters', function(done){
+        var md4 = function(req, res, next) { 
           req.params.should.have.property('id');
           req.params.id.should.be.equal('4');
           req.params.should.have.property('method');
@@ -176,30 +179,26 @@ describe('meucci', function() {
 			
         server('topic/:id/:method').use(md4);
 			
-        server.dispatch({path: 'topic/4/create', args: [], params: []}, function(res) { 
-          res.should.have.property('res');
-          res.res.should.be.true;
-        });
+        server.dispatch({path: 'topic/4/create', args: [], params: []}, res, function() { done(); });
       });
 		
       it('dispatches a request and handle errors', function(){
-        var md5 = function(req, next) { 
+        var md5 = function(req, res, next) { 
           counter.push('md5');
           next('error');
         };
 			
-        var md6 = function(err, req, next) {
+        var md6 = function(err, req, res, next) {
           counter.push('md6-err');
           next(err);
         }
 			
         server('err').use(md5, md6);
 			
-        server.dispatch({path: 'err', args: [], params: []}, function(res) { 
-          counter.should.have.length(2);
-          res.should.have.property('err');
-          res.err.should.be.equal('error');
-        });
+        server.dispatch({path: 'err', args: [], params: []}, res, function(res) { 
+          	counter.should.have.length(2);
+          	res.should.be.equal('error');
+				});
       });
     });
   });
@@ -225,18 +224,11 @@ describe('meucci', function() {
       res.match.should.be.an.instanceOf(Function);
     });
 		
-    it('performs when the path matches', function(){
-      var server = meucci()
-      , res = server('add/:a/:b').callback(fn);
-				
-      res('add/1/1', []).should.be.equal('11');
-    });
-		
     it('does not perform when the path does not match', function(){
       var server = meucci()
       , res = server('add/:a/:b').callback(fn);
 				
-      should.not.exist(res('add/1/1/3', []));
+      should.not.exist(res({path: 'add/1/1/3', args:[]}, {}, function(){}));
     });
   });
 });

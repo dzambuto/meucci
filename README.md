@@ -212,21 +212,23 @@ meucci('tasks/1/create').publish({'text': 'This is a task'});
 
 ```javascript
 // Canonical
-function(req, next) {}
+function(req, res, next) {}
 
 // Error handler
-function(err, req, next) {}
+function(err, req, res, next) {}
 ```
 
-The `req` object contains: 
+The `res` object contains: 
 
-1. `req.path` - the request path
-2. `req.args` - arguments passed to the request (used in `publish` and `request`)
-3. `req.rpc` - tells if a request has been made through `request`
-2. `req.params` - array of parameters extracted from `path`
-3. `req.connection` - the socket which the request is coming from
-4. `req.done`, `req.error` - functions for telling the outcome of the request to the caller
-5. `req.end` - function that closes the connection
+1. `res.path` - the request path
+2. `res.args` - arguments passed to the request (used in `publish` and `request`)
+3. `res.rpc` - tells if a request has been made through `request`
+2. `res.params` - array of parameters extracted from `path`
+3. `res.app` - meucci app managing request
+3. `res.connection` - the socket which the request is coming from
+4. `res.done`, `req.error` - functions for telling the outcome of the request to the caller
+5. `res.end` - function that closes the connection
+6. `res.send` - function for sending data
 
 `request` accepts functions whose signatures are like that: 
 

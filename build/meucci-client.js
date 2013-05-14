@@ -17,63 +17,133 @@ function createMeucci() {
   }
 
   merge(meucci, proto);
-	
-  meucci.procedures = [];
-  meucci.callbacks = [];
-  meucci.plugins = [];
+	meucci.init();
 
   return meucci;
 }
 
 var proto = {};
 
+proto.init = function() {	
+  this.procedures = [];
+  this.callbacks = [];
+  this.plugins = [];
+	this.settings = {};
+	this.defaultConfiguration();
+};
+
+proto.defaultConfiguration = function() {
+	var self = this;
+	
+	this.set('env', process.env.NODE_ENV || 'development');
+	
+	this.bind('app:mounted', function(parent) {
+		var app = self;
+		app.parent = parent;
+		if(parent.socket) app.socket = parent.socket
+		if(parent.io) app.io = parent.io;
+	});
+};
+
+proto.initSocket = function(socket) {
+	var self = this;
+
+	function onEvent(message, done) {
+		if(!message.path) return done({'err': 'Invalid message.'});
+		
+		var options = {
+			'path': message.path,
+			'args': message.args,
+			'rpc': message.rpc,
+			'socket': socket,
+			'ack': done,
+			'client': !proto.listen
+		};
+		
+		var req = self.requestMessage(options)
+				, res = self.responseMessage(options);
+
+		self.dispatch(req, res);
+	}
+
+	socket.on('event', onEvent);
+
+	this.events(socket);
+};
+
+proto.set = function(setting, val){
+  if (1 == arguments.length) {
+    return this.settings[setting];
+  } else {
+    this.settings[setting] = val;
+    return this;
+  }
+};
+
+proto.enable = function(setting){
+  return this.set(setting, true);
+};
+
+proto.disable = function(setting){
+  return this.set(setting, false);
+};
+
+proto.enabled = function(setting){
+  return !!this.set(setting);
+};
+
+proto.disabled = function(setting){
+  return !this.set(setting);
+};
+
 proto.handle = function(path, args) {
+	var options = {
+		'path': path,
+		'args': args,
+		'client': !this.listen
+	};
+	
+	var req = this.requestMessage(options)
+			, res = this.responseMessage(options)
+			, next = function() {};
+	
   for(var i = 0; i < this.callbacks.length; ++i) {
-    this.callbacks[i](path, args);
+    this.callbacks[i](req, res, next);
   }	
 };
 
-proto.rpc = function(path, args, done) {	
-  var i = 0, self = this;
-
-  function next(res) {		
-    var fn = self.procedures[i++];
-
-    if(!fn) {
-      if(res) return done({'res': res});
-      return done({'err' : 'Procedure not found.'});	
-    }
+proto.dispatch = function(req, res, out) {
+	var i = 0
+			, stack = req.rpc ? this.plugins.concat(this.procedures) : this.plugins.concat(this.callbacks)
+			, self = this;
 	
-    try {
-      if(res) return done(res);
-      fn(path, args, next);
-    } catch(e) {
-      next({'err': e});
-    }
-  }
-
-  next();
-};
-
-proto.dispatch = function(req, done) {
-  var i = 0, rpc = req.rpc, self = this;
   function next(err) {
-    var fn = self.plugins[i++];
+    var fn = stack[i++];
+
+    if(!fn || res.messageSent) {
+			if(out) return out(err);
 	
-    if(!fn) {
-      if(err) return done ? done({'err': err}) : false;
-      if(rpc) return self.rpc(req.path, req.args, done);
-      self.handle(req.path, req.args);
-      if(self.broadcast) self.broadcast(req.path, req.args, req.connection);
-      return done ? done({'res': true}) : true;
+      if(err) {
+				res.error(err);
+			}
+			else {
+				if(req.rpc) {
+					res.error('Procedure not found');
+				} else { 
+					res.broadcast();
+					res.done();
+				}
+			}
+
+			return;
     }
-	
+
     try {
       if(err) {
-        if(fn.length == 3) fn(err, req, next);
+        if(fn.length == 4) fn(err, req, res, next);
         else next(err);
-      } else if(fn.length < 3) {
-        fn(req, next);
+      } else if(fn.length == 3) {
+        fn(req, res, next);
       } else {
         next();
       }
@@ -132,6 +202,75 @@ proto.trigger = function(eventType) {
   }
 };
 
+proto.requestMessage = function(options) {
+	if(!options || !options.path) return;
+	
+	var req = {}
+			, done = options.ack;
+			
+	req.path = options.path;
+	req.args = options.args || [];
+	req.rpc = options.rpc || false;
+	req.app = this;
+	req.params = [];
+	
+	if(options.socket) req.connection = options.socket;
+	if(options.res) req.res = options.res;
+	
+	req.end = function(data) {
+		this.res && this.res.messageSent = true;
+		done && done({'res': data || true});
+		this.connection.disconnect();
+	};
+	
+	return req;
+};
+
+proto.responseMessage = function(options) {
+	if(!options || !options.path) return;
+	
+	var res = {}
+			, done = options.ack;
+			
+	res.path = options.path;
+	res.args = options.args || [];
+	res.rpc = options.rpc || false;
+	res.app = this;
+	res.params = [];
+	
+	if(options.socket) res.connection = options.socket;
+	if(options.req) res.req = options.res;
+	
+	res.error = function(err) {
+		this.messageSent = true;
+		done && done({'err': err || 'Unknown Error.'});
+	};
+
+	res.done = function() {
+		this.messageSent = true;
+		done && done({'res': true});
+	};
+
+	res.send = function(data) {
+		this.messageSent = true;
+		done && done({'res': data || true});
+	};
+
+	res.end = function(data) {
+		this.messageSent = true;
+		done && done({'res': data || true});
+		this.connection.disconnect();
+	};
+	
+	res.broadcast = function() {
+		var path = this.path
+				, args = this.args;
+		this.connection.broadcast && this.connection.broadcast.to(path).emit('event', {'path': path, 'args': args});
+	};
+	
+	return res;
+};
+
 proto.route = function(path, sockets, parent, options) {
   options = options || {};
   this.path = path;
@@ -166,19 +305,35 @@ proto.route.prototype.request = function() {
 };
 
 proto.route.prototype.middleware = function(fn) {
-  var self = this;
-  var arity = fn.length;
+  var self = this
+  		, arity = fn.length;
 
-  if(2 == arity) {
-    return function(req, next) {
-      if(self.match(req.path, req.params)) return fn(req, next);
+	if('function' == typeof fn.dispatch) {
+		var app = fn;
+		
+		self.parent.bind('service:started', function() {
+			if(self.parent.socket) app.socket = self.parent.socket
+			if(self.parent.io) app.io = self.parent.io;
+		});
+		
+		app.trigger('app:mounted', self.parent);
+		
+		return function(req, res, next) {
+			if(self.match(req.path, req.params)) return app.dispatch(req, res, next);
+			next();
+		}
+	}
+	
+  if(3 == arity) {
+    return function(req, res, next) {
+      if(self.match(req.path, req.params)) return fn(req, res, next);
       next();
     };
   }
 
-  if(3 == arity) {
-    return function(err, req, next) {
-      if(self.match(req.path, req.params)) return fn(err, req, next);
+  if(4 == arity) {
+    return function(err, req, res, next) {
+      if(self.match(req.path, req.params)) return fn(err, req, res, next);
       next();
     };
   }
@@ -190,6 +345,8 @@ proto.route.prototype.callback = function(fn) {
   var self = this;
   var f, ctx;
 
+	if('function' == typeof fn.dispatch) return;
+	
   if(fn instanceof Array) {
     f = fn[0];
     ctx = fn[1];
@@ -198,13 +355,27 @@ proto.route.prototype.callback = function(fn) {
     ctx = null;
   }
 
-  var res = function(path, args, next) {
-    var params = [];
-    if(self.match(path, params)) {
-      var nargs = params.concat(args || []);
-      next && nargs.push(next);
-      return f.apply(ctx, nargs);
+  var res = function(req, res, next) {
+    req.params = [];
+    if(self.match(req.path, req.params)) {
+      var nargs = req.params;
+			nargs = req.args ? nargs.concat(req.args) : nargs;
+			
+			if(req.rpc) {
+				function done(data) {
+					res.send(data);
+					return;
+				}
+				nargs.push(done);
+			}
+			
+			var data = f.apply(ctx, nargs);
+			
+			if(req.rpc && !res.messageSent) res.send(data);
+			if(!req.rpc) return next();
+			return data;
     }
+		next();
   };
 
   res.match = function(path, mt) { return mt == f && self.match(path, []); };
@@ -282,54 +453,13 @@ proto.connect = function(host, options) {
   options = options || {};
 
   this.socket = io.connect(host, options);
-  this.init(this.socket);
+  this.initSocket(this.socket);
 
   return io;
 };
 
-proto.init = function(socket) {
-  var self = this;
-
-  function onEvent(message, done) {
-    var req = {};		
-    // Init request object
-    req.connection = socket;
-    req.app = self;
-    req.params = [];
-
-    // send, end, error function
-    req.error = function(err) {
-      done({'err': err || 'Unknown Error.'});
-    };
-
-    req.done = function() {
-      done({'res': true});
-    };
-
-    req.send = function(data) {
-      done({'res': data || true});
-    };
-
-    req.end = function(data) {
-      done({'res': data || true});
-      this.connection.disconnect();
-    };
-
-    // Parse message data
-    // @param path, args
-    if(message.path && message.args) {
-      req.path = message.path;
-      req.args = message.args;
-      req.rpc = message.rpc || false;
-    }
-    else {
-      return done({err: 'Invalid message.'});
-    }
-
-    self.dispatch(req, done);
-  }
-
-  socket.on('event', onEvent);
+proto.events = function(socket) {
+	var self = this;
 	
   function onConnect() {
     self.trigger('connection:up', socket);
@@ -354,6 +484,7 @@ proto.initStorage = function(options) {
 	
 };
 
+// Thanks to TJ Holowaychuk (visionmedia) 
 function pathtoRegexp(path, keys, sensitive, strict) {
   if (path instanceof RegExp) return path;
   if (path instanceof Array) path = '(' + path.join('|') + ')';

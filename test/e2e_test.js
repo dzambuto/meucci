@@ -15,7 +15,7 @@ describe('meucci', function () {
 		
 
     before(function(done) {
-      var md1 = function(req, next) { middleware.push('md1'); next(); };
+      var md1 = function(req, res, next) { middleware.push('md1'); next(); };
       server('task/:id').use(md1);
 		
       server('task/create').respond(function(task, res) {
@@ -112,8 +112,7 @@ describe('meucci', function () {
             done();
       		}).then(function(res) {
       			return clients[1]('task/1').subscribe(function(task) {
-      				task.should.equal(taskm);
-      	      done();
+      	      done('error');
       			});
       		}).then(function(res) {
       			server('task/0').publish(taskm = 8);
@@ -148,6 +147,58 @@ describe('meucci', function () {
       		});
       	});
       });
+			
+			describe('when a subapp is mounted to a path', function() {
+				describe('and receives a request', function() {
+					it('responds', function(done){
+						var subapp = meucci();
+					
+						subapp('user/:method').use(function(req, res, next) { 
+							req.path.should.be.equal('user/create'); 
+							next();
+						});
+						
+						subapp('user/delete').respond(function(id, res) { 
+							done('error');
+						});
+					
+						subapp('user/create').respond(function(id, res) { 
+							id.should.be.equal('12'); 
+							res(id); 
+						});
+					
+						server('user/*').use(subapp);
+
+						clients[0]('user/create').request('12').then(function(res) {
+							res.should.be.equal('12');
+							done();
+						});
+					});
+				});
+				
+				describe('and receives a publish', function() {
+					it('broadcasts events', function(done){
+						var subapp = meucci();
+					
+						subapp('user/stat/:id').use(function(req, res, next) { 
+							req.path.should.be.equal('user/stat/12'); 
+							next();
+						});
+					
+						subapp('user/stat/:id').subscribe(function(id, attr) { 
+							id.should.be.equal('12'); 
+							attr.should.be.equal('123');
+							done(); 
+						});
+					
+						server('user/*').use(subapp);
+						
+		        clients[1]('user/stat/12').publish('123');
+						
+					});
+				});
+			});
+			
     });
   });
 })

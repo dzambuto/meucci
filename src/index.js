@@ -7,10 +7,7 @@ function createMeucci() {
   }
 
   merge(meucci, proto);
-	
-  meucci.procedures = [];
-  meucci.callbacks = [];
-  meucci.plugins = [];
+	meucci.init();
 
   return meucci;
 }
