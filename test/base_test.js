@@ -200,6 +200,11 @@ describe('meucci', function() {
           	res.should.be.equal('error');
 				});
       });
+			
+      it('adds an element in meucci.plugins', function(){
+        server.use(md1);
+        server.plugins.should.have.length(7);
+      });
     });
   });
   

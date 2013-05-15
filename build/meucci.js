@@ -75,6 +75,10 @@ proto.set = function(setting, val){
   }
 };
 
+proto.get = function(setting) {
+	return this.settings[setting];
+};
+
 proto.enable = function(setting){
   return this.set(setting, true);
 };
@@ -151,7 +155,7 @@ proto.dispatch = function(req, res, out) {
 };
 
 proto.use = function() {
-  return this('*').use.apply(null, arguments);
+  return this.route.prototype.use.apply(this('*'), arguments);
 };
 
 proto.reset = function() {

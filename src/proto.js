@@ -136,7 +136,7 @@ proto.dispatch = function(req, res, out) {
 };
 
 proto.use = function() {
-  return this('*').use.apply(null, arguments);
+  return this.route.prototype.use.apply(this('*'), arguments);
 };
 
 proto.reset = function() {
