@@ -3,8 +3,13 @@
     exports = module.exports = factory(require('socket.io-client'), require('q'));
   } else if (typeof define === 'function' && define.amd) {
     define('meucci', ['io', 'Q'], factory);
+  } else if (typeof angular !== 'undefined' && angular.injector) {
+    angular.module('angular.meucci', [])
+      .factory('meucci', ['$window', '$q', function ($window, $q) {
+        return factory($window.io, $q);
+      }]);
   } else {
-    root.protocol = factory(root.io, root.Q);
+    root.meucci = factory(root.io, root.Q);
   }
 }(this, function (io, Q) {
 
@@ -78,6 +83,10 @@ proto.set = function(setting, val){
     this.settings[setting] = val;
     return this;
   }
+};
+
+proto.get = function(setting) {
+	return this.settings[setting];
 };
 
 proto.enable = function(setting){

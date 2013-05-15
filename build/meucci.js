@@ -75,6 +75,10 @@ proto.set = function(setting, val){
   }
 };
 
+proto.get = function(setting) {
+	return this.settings[setting];
+};
+
 proto.enable = function(setting){
   return this.set(setting, true);
 };
