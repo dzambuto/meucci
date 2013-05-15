@@ -20,9 +20,9 @@ Start a server:
 var meucci = require('meucci')
   , app = meucci();
 	
-server.listen(8000);
+app.listen(8000);
 
-server('messages').use(filterSpams);
+app('messages').use(filterSpams);
 ```
 	
 Create a client:
