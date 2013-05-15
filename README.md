@@ -72,7 +72,7 @@ $ bower install meucci
 
 If you use [require.js](http://requirejs.org/) Meucci automagically detects it and is available as a `meucci` module.
 
-Also, if you use (AngularJS)[http://angularjs.org/] it creates for you an `angular.meucci` module, that yields a `meucci` service.
+Also, if you use [AngularJS](http://angularjs.org/) it creates for you an `angular.meucci` module, that yields a `meucci` service.
 
 Otherwise Meucci attaches a `meucci` global variable to `window`.
 
