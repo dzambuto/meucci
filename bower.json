@@ -1,6 +1,6 @@
 {
   "name": "meucci",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "main": "build/meucci-client.js",
   "ignore": [
     "**/.*",
