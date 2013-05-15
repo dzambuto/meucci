@@ -22,7 +22,7 @@ var meucci = require('meucci')
 	
 app.listen(8000);
 
-app('messages').use(filterSpams);
+app('messages').use(spamFilters);
 ```
 	
 Create a client:
