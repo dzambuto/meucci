@@ -50,7 +50,7 @@ client('messages').publish('Hello world!');
 	
 ## Dependencies
 
-meucci depends on two mainstream libraries: [socket.io](https://github.com/LearnBoost/socket.io) and [q](https://github.com/kriskowal/q).
+Meucci depends on two mainstream libraries: [socket.io](https://github.com/LearnBoost/socket.io) and [q](https://github.com/kriskowal/q).
 
 ## Installation
 
@@ -60,11 +60,21 @@ In a node.js environment just issue
 $ npm install meucci
 ```
 
-For the browser you can pick the `build/meucci-client.js` file, or whether you are a [bower](https://github.com/bower/bower) user, just issue
+For the browser you can pick the `build/meucci-client.js` file or `build/meucci.min.js` for the minified version.
+
+In case you are a [bower](https://github.com/bower/bower) user, just issue
 
 ```shell
 $ bower install meucci
 ```
+
+## Browser usage
+
+If you use [require.js](http://requirejs.org/) Meucci automagically detects it and is available as a `meucci` module.
+
+Also, if you use (AngularJS)[http://angularjs.org/] it creates for you an `angular.meucci` module, that yields a `meucci` service.
+
+Otherwise Meucci attaches a `meucci` global variable to `window`.
 
 ## API
 
@@ -133,7 +143,7 @@ meucci('tasks/3/changed').publish(task).fail(handleError);
 
 It's not possible to use wildcards. It first bubbles through the local environment, then to the server and eventually to all the clients subscribed to `path`.
 
-I returns a promise, whose methods are: `then`, `fail` and all the other supported methods from the [q library](https://github.com/kriskowal/q). The promise is employed to handle the results of the action.
+It returns a promise, whose methods are: `then`, `fail` and all the other supported methods from the [q library](https://github.com/kriskowal/q). The promise is employed to handle the results of the action.
 
 When there is an error, `fail` takes a callback with an error as the only argument. In case of linked `sockets` it propagates it to them.
 
