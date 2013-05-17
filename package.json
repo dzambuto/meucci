@@ -1,7 +1,7 @@
 {
   "name": "meucci",
   "description": "PubSub from Timecolors",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "author": "Daniele Zambuto <daniele.zambuto@gmail.com>",
   "contributors": [
     {
