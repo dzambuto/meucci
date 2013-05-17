@@ -21,6 +21,10 @@ describe('meucci', function () {
       server('task/create').respond(function(task, res) {
         res(++task);
       });
+			
+      server('task/echo').respond(function(task) {
+        return task;
+      });
 		
       server.bind('service:started', function() {
         clients.forEach(function(client) {
@@ -40,8 +44,8 @@ describe('meucci', function () {
 	
     afterEach(function() {
       middleware = [];
-      clients[0].reset()('task/0').unsubscribe()
-      clients[1].reset()('task/1').unsubscribe()
+      clients[0].socket && clients[0].reset()('task/0').unsubscribe()
+      clients[1].socket && clients[1].reset()('task/1').unsubscribe()
     });
 	
 	
@@ -129,6 +133,15 @@ describe('meucci', function () {
       				else done(task); 
       			});
       	});
+				
+      	it('broadcasts events', function(done) {
+      		clients[1]('task/echo')
+      			.request(taskm)
+      			.then(function(task) { 
+      				if(taskm == task) done(); 
+      				else done('Errore: ', taskm); 
+      			});
+      	});
       });
       
       describe('when there is a chain of #publish() and #respond()', function () {
@@ -200,5 +213,17 @@ describe('meucci', function () {
 			});
 			
     });
+		
+		describe('client', function () {
+			it('disconnects', function (done) {
+				clients[0].bind('connection:down', function () {
+					done()
+				});
+				
+				clients[0].disconnect();
+				should.not.exist(clients[0].socket);
+			});
+		});
+		
   });
 })

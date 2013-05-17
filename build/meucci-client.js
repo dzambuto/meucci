@@ -467,6 +467,11 @@ proto.connect = function(host, options) {
   return io;
 };
 
+proto.disconnect = function() {
+	this.socket.disconnect();
+	delete this.socket;
+};
+
 proto.events = function(socket) {
 	var self = this;
 	
@@ -477,7 +482,7 @@ proto.events = function(socket) {
   socket.on('connect', onConnect);
 	
   function onDisconnect() {
-    self.trigger('connection:down', socket);
+    self.trigger('connection:down');
   }
 
   socket.on('disconnect', onDisconnect);
