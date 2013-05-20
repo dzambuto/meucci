@@ -30,7 +30,9 @@ proto.init = function() {
 proto.defaultConfiguration = function() {
 	var self = this;
 	
-	this.set('env', process.env.NODE_ENV || 'development');
+	if (typeof process !== 'undefined') {
+    this.set('env', process.env.NODE_ENV || 'development');
+  }
 	
 	this.bind('app:mounted', function(parent) {
 		var app = self;
