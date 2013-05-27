@@ -14,7 +14,7 @@ proto.requestMessage = function(options) {
 	if(options.res) req.res = options.res;
 	
 	req.end = function(data) {
-		this.res && this.res.messageSent = true;
+		if (this.res) this.res.messageSent = true;
 		done && done({'res': data || true});
 		this.connection.disconnect();
 	};
