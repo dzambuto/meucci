@@ -5,8 +5,8 @@
     define('meucci', ['io', 'Q'], factory);
   } else if (typeof angular !== 'undefined' && angular.injector) {
     angular.module('angular.meucci', [])
-      .factory('meucci', ['$window', '$q', function ($window, $q) {
-        return factory($window.io, $q);
+      .factory('meucci', ['$window', function ($window) {
+        return factory($window.io, $window.Q);
       }]);
   } else {
     root.meucci = factory(root.io, root.Q);

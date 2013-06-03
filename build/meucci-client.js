@@ -6,12 +6,13 @@
   } else if (typeof angular !== 'undefined' && angular.injector) {
     angular.module('angular.meucci', [])
       .factory('meucci', ['$window', '$q', function ($window, $q) {
-        return factory($window.io, $q);
+        return factory($window.io, $window.Q);
       }]);
   } else {
     root.meucci = factory(root.io, root.Q);
   }
 }(this, function (io, Q) {
+
 
 function createMeucci() {
   function meucci(path, sockets) {
