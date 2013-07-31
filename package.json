@@ -1,18 +1,15 @@
 {
   "name": "meucci",
   "description": "PubSub from Timecolors",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "author": "Daniele Zambuto <daniele.zambuto@gmail.com>",
   "contributors": [
-    {
-      "name": "Riccardo Gueli Alletti",
-      "email": "riccardo.gueli.alletti@gmail.com"
-    }
+    {"name": "Riccardo Gueli Alletti", "email": "riccardo.gueli.alletti@gmail.com"}
   ],
   "repository": "git://github.com/dzambuto/meucci.git",
   "main": "build/meucci.js",
   "dependencies": {
-    "q": "~0.9.2",
+    "q": "~0.9.x",
     "socket.io": "~0.9.x"
   },
   "devDependencies": {
